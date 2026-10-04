@@ -1,0 +1,15 @@
+﻿code_iata;nom;distance_km_depuis_lille;vol_direct_tun;compagnies;jours_exploitation_constates;statut;pertinent
+LIL;Lille-Lesquin;8;oui;Nouvelair (BJ739 Lille→Tunis, BJ738 Tunis→Lille);"Hebdomadaire, le samedi (LIL 21:45 → TUN 23:30 ; TUN 16:15 → LIL ≈19:55, horaires d'été). Un vol le mardi est aussi affiché par Skyscanner (13/10 → 20/10), non confirmé. Ligne programmée jusqu'au 31/10/2026, puis interrompue de novembre 2026 à juin 2027.";OBSERVÉ;oui
+KJK;Courtrai-Wevelgem;22;non;—;Pas de ligne régulière de passagers;—;non
+OST;Ostende-Bruges;64;non;TUI fly (Espagne, Grèce, Turquie, Égypte en 2026);Aucune liaison Tunisie en 2026;OBSERVÉ;non
+BYF;Albert-Picardie;78;non;—;Pas de ligne régulière de passagers;—;non
+CQF;Calais-Dunkerque;86;non;—;Pas de ligne régulière de passagers;—;non
+CRL;Bruxelles-Sud Charleroi;100;non confirmé;TUI fly (TB2741 / TB2742);"Ligne ouverte en 2017 (2 vols par semaine) ; TB2742 signalé annulé, TB2741 non opéré récemment ; la page Tunisie de TUI fly ne propose que Djerba et Enfidha. Considérée comme non opérée en octobre 2026.";INDISPONIBLE;non
+LTQ;Le Touquet-Côte d'Opale;103;non;—;Aucune ligne vers la Tunisie;—;non
+BRU;Bruxelles-Zaventem;104;oui;"Tunisair (TU955 / TU954) ; Nouvelair (BJ397 / BJ396)";"Tunisair : quotidien (BRU 12:25 → TUN 14:00 ; TUN 07:50 → BRU 11:25, horaires d'été). Nouvelair : environ 5 vols par semaine, horaires variables (11:15 à 21:15). Environ 12 à 14 vols directs par semaine au total.";OBSERVÉ;oui
+ANR;Anvers-Deurne;116;non;TUI fly (Enfidha saisonnier);Pas de direct vers Tunis;OBSERVÉ;non
+BVA;Paris-Beauvais;148;non;—;Pas de direct vers Tunis (Ryanair et Wizz Air ne desservent pas la Tunisie);OBSERVÉ;non
+LYX;Lydd (Royaume-Uni);153;non;—;Aucune ligne vers la Tunisie;—;non
+LGG;Liège;168;voir constat;;TUI a quitté Liège en janvier 2026 : plus de vols de passagers vers la Tunisie.;hors rayon;exception étudiée
+CDG;Paris-Charles de Gaulle;185;voir constat;;Directs Tunisair, Nouvelair, Air France. Tunisair Paris « à partir de 596 TND » (≈176 €, ESTIMÉ).;hors rayon;exception étudiée
+ORY;Paris-Orly;218;voir constat;;Directs Transavia, Tunisair, Nouvelair. Transavia : 130–135 € sans bagage (5-9/10, 9-12/10), soit ≈210–215 € avec 20 kg aller-retour (ESTIMÉ). Aucune économie par rapport à Bruxelles.;hors rayon;exception étudiée

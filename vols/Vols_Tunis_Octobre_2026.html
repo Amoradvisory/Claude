@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vols Tunis octobre 2026</title>
+<meta name="description" content="Aller-retour le moins cher vers Tunis (TUN) en octobre 2026 depuis les aéroports autour de Lille, 1 adulte, bagage en soute d'au moins 20 kg. Prix observés le 04/10/2026, non vérifiés.">
+<style>
+:root{
+  --page:#f6f6f3; --surface:#ffffff; --surface-2:#f1f0ec;
+  --ink:#0b0b0b; --ink-2:#45443f; --muted:#6a6964;
+  --line:#e1e0d9; --line-2:#c3c2b7;
+  --accent:#1d4fa3; --accent-ink:#ffffff; --accent-soft:#eaf0fb; --accent-line:#9db5e3;
+  --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b; --neutral:#898781;
+  --good-bg:#e3f5e3; --warning-bg:#fff3d6; --serious-bg:#fde9e1; --critical-bg:#fbe4e4; --neutral-bg:#efeeea;
+  --radius:14px; --shadow:0 1px 2px rgba(11,11,11,.06),0 4px 16px rgba(11,11,11,.06);
+  color-scheme:light dark;
+}
+@media screen and (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+    --ink:#ffffff; --ink-2:#d5d4cb; --muted:#a6a59d;
+    --line:#2c2c2a; --line-2:#45453f;
+    --accent:#8db4ff; --accent-ink:#0b0b0b; --accent-soft:#16233b; --accent-line:#34507e;
+    --good-bg:#12301a; --warning-bg:#3a2c08; --serious-bg:#3b2116; --critical-bg:#3a1616; --neutral-bg:#2a2a27;
+    --shadow:none;
+  }
+}
+@media screen{
+:root[data-theme="dark"]{
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232321;
+  --ink:#ffffff; --ink-2:#d5d4cb; --muted:#a6a59d;
+  --line:#2c2c2a; --line-2:#45453f;
+  --accent:#8db4ff; --accent-ink:#0b0b0b; --accent-soft:#16233b; --accent-line:#34507e;
+  --good-bg:#12301a; --warning-bg:#3a2c08; --serious-bg:#3b2116; --critical-bg:#3a1616; --neutral-bg:#2a2a27;
+  --shadow:none;
+}
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent);text-underline-offset:2px}
+a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+abbr{text-decoration:none;font-weight:600;letter-spacing:.02em}
+h1,h2,h3{line-height:1.2;margin:0}
+p{margin:0}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.page{max-width:1080px;margin:0 auto;padding:24px 16px 48px}
+.muet{color:var(--muted);font-weight:400}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* En-tête */
+.entete{display:grid;gap:8px;margin-bottom:16px}
+.surtitre{color:var(--ink-2);font-size:.95rem}
+.entete h1{font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:-.01em}
+.fraicheur{font-size:1rem}
+.meta{display:flex;flex-wrap:wrap;gap:8px 16px;list-style:none;margin:4px 0 0;padding:0;color:var(--ink-2);font-size:.95rem;align-items:center}
+.meta b{color:var(--ink)}
+.dynamique{font-size:.85rem}
+
+/* Badges (statut = icône + libellé, jamais la couleur seule) */
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 7px;border-radius:999px;border:1.5px solid;font-size:.78rem;font-weight:700;letter-spacing:.03em;line-height:1.5;color:var(--ink);white-space:nowrap;vertical-align:middle}
+.badge-ico{font-weight:800}
+.badge-verifie{border-color:var(--good);background:var(--good-bg)}
+.badge-observe{border-color:var(--warning);background:var(--warning-bg)}
+.badge-reverifier{border-color:var(--serious);background:var(--serious-bg)}
+.badge-estime{border-color:var(--neutral);background:var(--neutral-bg)}
+.badge-indispo{border-color:var(--critical);background:var(--critical-bg)}
+
+/* Bandeau d'avertissement */
+.alerte{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--serious);background:var(--serious-bg);border-radius:12px;padding:12px 14px;margin:0 0 20px;font-size:.95rem}
+.alerte-ico{font-weight:800;font-size:1.1rem;line-height:1.3}
+
+/* Gagnant */
+.gagnant{background:var(--surface);border:2px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;display:grid;gap:16px}
+.gagnant-tete,.carte-tete{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between}
+.gagnant-tete h2{font-size:1.15rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.gagnant-corps{display:grid;grid-template-columns:minmax(200px,280px) 1fr;gap:20px;align-items:start}
+.prix-bloc{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:12px;padding:16px 18px}
+.prix-hero{font-size:clamp(3rem,9vw,4.5rem);font-weight:750;line-height:1;letter-spacing:-.02em}
+.prix-sous{margin-top:10px;color:var(--ink-2)}
+.prix-sous strong{color:var(--ink)}
+.infos-bloc{display:grid;gap:8px}
+.trajet{font-size:1.3rem;font-weight:650}
+.trajet-petit{font-size:1.05rem}
+.fleche{color:var(--muted);padding:0 2px}
+.dates{font-size:1.1rem}
+.cie{font-size:1rem}
+.pastille{display:inline-block;padding:1px 8px;border-radius:6px;font-size:.78rem;font-weight:800;letter-spacing:.05em;border:1.5px solid var(--ink-2)}
+.horaires{display:grid;grid-template-columns:repeat(2,minmax(0,max-content));gap:4px 24px;margin:2px 0}
+.horaires div{display:flex;gap:8px;flex-wrap:wrap}
+.horaires dt{font-weight:700;min-width:3.6em}
+.horaires dd{margin:0;font-variant-numeric:tabular-nums}
+.bagage,.vendeur{color:var(--ink-2)}
+.a-noter{font-size:.92rem;border-left:3px solid var(--serious);padding:2px 0 2px 10px}
+.horodatage{font-size:.85rem;color:var(--muted)}
+
+/* Boutons */
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{display:inline-flex;flex-direction:column;justify-content:center;min-height:44px;padding:8px 16px;border-radius:10px;font-weight:700;line-height:1.25;text-decoration:none;border:1.5px solid var(--accent)}
+.btn-primaire{background:var(--accent);color:var(--accent-ink)}
+.btn-secondaire{background:transparent;color:var(--accent)}
+.btn:hover{filter:brightness(1.08)}
+.btn-sous{font-size:.78rem;font-weight:500;opacity:.92}
+.lien-discret{font-size:.92rem}
+.actions-carte{gap:8px 16px}
+.note-horaire{font-size:.85rem;color:var(--muted);margin-top:-2px}
+.chapeau{margin-bottom:12px;color:var(--ink-2)}
+.imprime{display:none}
+
+/* Détails (divulgation progressive) */
+.details{border-top:1px solid var(--line);padding-top:10px}
+.details summary{cursor:pointer;font-weight:650;color:var(--ink-2);list-style-position:outside}
+.details summary h2{display:inline;font-size:1.25rem;color:var(--ink)}
+.details-corps{display:grid;gap:8px;margin-top:10px}
+.liste-def{display:grid;gap:2px;margin:0;max-width:440px}
+.liste-def div{display:flex;justify-content:space-between;gap:16px;padding:3px 0;border-bottom:1px dashed var(--line)}
+.liste-def dt{color:var(--ink-2)}
+.liste-def dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.liste-def .total{border-bottom:0;border-top:1.5px solid var(--ink-2);font-weight:750}
+.note{font-size:.92rem;color:var(--ink-2)}
+
+/* Alternatives */
+.alternatives{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
+.carte{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius);padding:18px;display:grid;gap:10px;align-content:start}
+.carte-tete h3{font-size:1.05rem}
+.carte-prix{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline}
+.prix-carte{font-size:2.3rem;font-weight:750;line-height:1;letter-spacing:-.01em}
+.ecarts{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
+.ecarts li{font-size:.85rem;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line-2)}
+.avantage{font-weight:600}
+
+/* Sections */
+.section{margin-top:32px}
+.section>h2{font-size:1.35rem;margin-bottom:12px}
+.sous-titre{font-size:1.05rem;margin:18px 0 8px}
+
+/* Tableaux */
+.table-cadre{overflow-x:auto;border:1px solid var(--line-2);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:9px 10px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+thead th{background:var(--surface-2);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2)}
+tbody tr:last-child>*{border-bottom:0}
+.ligne-n1{background:var(--accent-soft)}
+
+/* À savoir */
+.grille-infos{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.info{background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:14px;display:grid;gap:6px;align-content:start}
+.info h3{font-size:.95rem;color:var(--ink-2)}
+.info-prix{font-size:1.5rem;font-weight:750}
+.info-ecart{font-weight:650}
+.liste-rem,.liste-ref{display:grid;gap:10px;padding-left:20px;margin:0}
+
+/* Fiabilité */
+.grille-fiab{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.couverture{display:grid;gap:8px;padding-left:20px;margin:0 0 10px}
+.encadre{background:var(--surface);border:1.5px solid var(--accent-line);border-radius:12px;padding:14px 16px}
+.encadre h3{font-size:1rem;margin-bottom:8px}
+.encadre ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.legende{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.legende li{display:flex;gap:10px;align-items:flex-start}
+.legende li .badge{min-width:150px;justify-content:center}
+.methode{display:grid;gap:8px;padding-left:20px;margin:0}
+
+.pied{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;display:grid;gap:4px}
+
+/* Fenêtres moyennes et petites : les tableaux deviennent des fiches empilées (aucune colonne coupée) */
+@media screen and (max-width:980px){
+  .table-cadre{overflow:visible;border:0;background:transparent}
+  table,thead,tbody,tr,th,td{display:block}
+  thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  tbody tr{background:var(--surface);border:1px solid var(--line-2);border-radius:12px;margin-bottom:10px;padding:6px 12px}
+  tbody tr.ligne-n1{background:var(--accent-soft);border-color:var(--accent-line)}
+  th,td{border:0;padding:5px 0;display:grid;grid-template-columns:7.5em 1fr;gap:10px}
+  th[data-label]::before,td[data-label]::before{content:attr(data-label);font-weight:700;color:var(--ink-2);font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+  .num{white-space:normal}
+}
+@media screen and (min-width:761px) and (max-width:980px){
+  tbody tr{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+}
+
+/* Petits écrans (écran uniquement : la page A4 imprimée fait ≈710 px de large) */
+@media screen and (max-width:760px){
+  .page{padding:14px 16px 40px}
+  .entete{gap:4px;margin-bottom:12px}
+  .surtitre{font-size:.85rem}
+  .entete h1{font-size:1.5rem}
+  .fraicheur{font-size:.92rem}
+  .meta{gap:4px 12px;font-size:.88rem;margin-top:2px}
+  .alerte{padding:9px 12px;font-size:.88rem;margin-bottom:14px;gap:8px}
+  .gagnant{padding:14px;gap:12px}
+  .gagnant-tete h2{font-size:1rem}
+  .gagnant-corps{grid-template-columns:1fr;gap:12px}
+  .prix-bloc{padding:12px 14px}
+  .alternatives{grid-template-columns:1fr}
+  .grille-fiab{grid-template-columns:1fr}
+  .horaires{grid-template-columns:1fr}
+  .legende li{flex-direction:column;gap:4px}
+  .legende li .badge{min-width:0}
+  .actions .btn{flex:1 1 100%;align-items:center;text-align:center}
+}
+
+/* Impression / PDF */
+@page{size:A4}
+@media print{
+  :root{--page:#fff;--surface:#fff;--shadow:none;color-scheme:light}
+  body{font-size:9.5pt;line-height:1.4;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{max-width:none;padding:0}
+  /* Page 1 : en-tête, avertissement et les trois offres */
+  .entete{gap:2px;margin-bottom:6px}
+  .surtitre{font-size:8.5pt}
+  .entete h1{font-size:18pt}
+  .meta{font-size:8.5pt;margin-top:0}
+  .alerte{margin-bottom:8px;padding:6px 10px;font-size:8.5pt}
+  .gagnant{padding:10px 12px;gap:7px;break-inside:avoid;border-width:1.5pt}
+  .gagnant-tete h2{font-size:10.5pt}
+  .gagnant-corps{grid-template-columns:180px 1fr;gap:12px}
+  .prix-bloc{padding:10px 12px}
+  .prix-hero{font-size:36pt}
+  .prix-sous{margin-top:6px;font-size:9pt}
+  .infos-bloc{gap:4px}
+  .trajet{font-size:12pt}
+  .dates{font-size:10.5pt}
+  .alternatives{grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .carte{padding:8px 10px;gap:4px;break-inside:avoid}
+  .carte-tete h3{font-size:10pt}
+  .prix-carte{font-size:19pt}
+  .ecarts li{font-size:8pt;padding:1px 6px}
+  .avantage{font-size:9pt}
+  .trajet-petit{font-size:9.5pt}
+  .note-horaire{font-size:7.5pt}
+  .btn{min-height:0;padding:3px 8px;font-size:8pt}
+  .btn-sous{font-size:7pt}
+  .actions{gap:6px}
+  .lien-discret{font-size:8pt}
+  .horodatage{font-size:7.5pt}
+  .carte .horodatage{display:none}
+  .details{padding-top:4px;border-top:0}
+  .details summary{list-style:none}
+  .details summary::-webkit-details-marker{display:none}
+  .gagnant .details,.carte .details{display:none}
+  /* Pages suivantes */
+  .section{margin-top:12px;break-inside:auto}
+  .section>h2,.details summary h2{font-size:13pt}
+  #methode{break-before:page}
+  .grille-infos{break-inside:avoid}
+  .legende,.grille-fiab{break-inside:avoid}
+  .details-section>summary{break-after:avoid}
+  .pied{display:none}
+  .liste-ref{gap:5px}
+  #comparaison{margin-top:8px;break-inside:avoid}
+  #comparaison .note{font-size:8pt}
+  .a-noter{font-size:8pt;padding:1px 0 1px 8px}
+  .bagage,.vendeur{font-size:8.5pt}
+  .entete h1{font-size:16pt}
+  .alerte{font-size:8pt;padding:5px 8px}
+  .gagnant .horodatage{font-size:7pt}
+  .section>h2,.sous-titre{break-after:avoid}
+  .imprime{display:block}
+  .compo{font-size:7.5pt;color:var(--ink-2)}
+  .cie{font-size:9.5pt}
+  .note,.chapeau{font-size:8.5pt}
+  .couverture{gap:4px}
+  .grille-infos{grid-template-columns:repeat(2,1fr);gap:8px}
+  .info{padding:8px 10px;gap:3px}
+  .info-prix{font-size:13pt}
+  .liste-rem{gap:4px}
+  .info,.encadre,tr,.liste-rem li,.legende li{break-inside:avoid}
+  .table-cadre{overflow:visible}
+  table{font-size:8pt}
+  th,td{padding:4px 5px}
+  .url{word-break:break-all;font-size:7pt}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="entete">
+    <p class="surtitre">1 adulte · aller-retour · bagage en soute d'au moins 20 kg · aéroports à 150 km ou moins de Lille</p>
+    <h1>Vols vers Tunis — Octobre 2026</h1>
+    <p class="fraicheur"><strong>Prix observés le 04/10/2026 à 12:37</strong> · <span class="muet">non vérifiés dans un parcours de réservation</span></p>
+    <p class="dynamique muet">Les tarifs aériens sont dynamiques et peuvent évoluer après cette observation.</p>
+    <ul class="meta">
+      <li><b>11</b> aéroports examinés</li>
+      <li><b>22</b> offres examinées</li>
+      <li>Recherche : <span class="badge badge-reverifier"><span class="badge-ico" aria-hidden="true">◐</span>PARTIELLE</span></li>
+    </ul>
+  </header>
+
+  <aside class="alerte" role="note">
+    <span class="alerte-ico" aria-hidden="true">!</span>
+    <p><strong>Prix à confirmer avant d'acheter.</strong> Ils ont été vus sur des comparateurs vers fin septembre et n'ont pas pu être vérifiés sur les sites de réservation, inaccessibles pendant la recherche. Ils ont pu augmenter depuis. <a href="#fiabilite">Pourquoi, et comment vérifier en 2 minutes</a></p>
+  </aside>
+
+  <section class="gagnant" id="n1" aria-labelledby="titre-n1">
+      <div class="gagnant-tete">
+        <h2 id="titre-n1"><span aria-hidden="true">🏆</span> Meilleur choix</h2>
+        <div class="badges"><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>PRIX OBSERVÉ</span><span class="badge badge-reverifier"><span class="badge-ico" aria-hidden="true">!</span>À REVÉRIFIER</span></div>
+      </div>
+      <div class="gagnant-corps">
+        <div class="prix-bloc">
+          <p class="prix-hero">122 €</p>
+          <p class="prix-sous">aller-retour · 1 adulte<br><strong>23 kg en soute inclus</strong></p>
+        </div>
+        <div class="infos-bloc">
+          <p class="trajet">Bruxelles-Zaventem <abbr title="code IATA">BRU</abbr> <span class="fleche" aria-hidden="true">→</span><span class="sr"> vers </span> Tunis-Carthage <abbr title="code IATA">TUN</abbr></p>
+          <p class="dates">jeu. 8 oct. → dim. 11 oct. 2026 · <strong>3 nuits</strong></p>
+          <p class="cie">Tunisair <span class="muet">TU955 / TU954</span> · <span class="pastille pastille-direct">DIRECT</span></p>
+          <dl class="horaires">
+          <div><dt>Aller</dt><dd>12:25 → 14:00 <span class="muet">· 2 h 35</span></dd></div>
+          <div><dt>Retour</dt><dd>07:50 → 11:25 <span class="muet">· 2 h 35</span></dd></div>
+        </dl>
+          <p class="bagage"><span aria-hidden="true">🧳</span> 1 bagage en soute de 23 kg inclus (franchise Tunisair classe Économie Europe ⇄ Tunisie) + bagage cabine 8 kg</p>
+          <p class="vendeur"><strong>Où réserver :</strong> tunisair.com (prix vu sur un comparateur, vendeur non identifié)</p>
+          <p class="a-noter"><strong>À noter :</strong> départ dans 4 jours. Ce tarif n'est pas vérifié et a pu augmenter depuis sa collecte : dans ce cas, comparez avec les n°2 et n°3, à 3–4 € près.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primaire" href="https://www.google.com/travel/flights?q=Flights+from+BRU+to+TUN+on+2026-10-08+through+2026-10-11+nonstop&amp;hl=fr&amp;gl=BE&amp;curr=EUR" target="_blank" rel="noopener">Voir / réserver l'offre <span class="btn-sous">Google Flights · dates pré-remplies</span></a>
+        <a class="btn btn-secondaire" href="https://www.tunisair.com/fr" target="_blank" rel="noopener">Réserver sur tunisair.com</a>
+        <a class="lien-discret" href="https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis" target="_blank" rel="noopener">Source du prix</a>
+      </div>
+      <p class="compo imprime"><strong>Composition :</strong> total affiché 122 € (taxes incluses, non séparable) · bagage 23 kg inclus (0 €) · frais d&#x27;agence ou de paiement : inconnus</p>
+      <p class="horodatage">Prix observé le 04/10/2026 vers 12:35 · collecte de la source : inconnue, vraisemblablement vers le 20–25/09/2026 (la même page affiche un 129 € pour le 24-27/09) · <strong>non vérifié</strong></p>
+      <details class="details">
+        <summary>Composition du prix, preuves et liens</summary>
+        <div class="details-corps">
+          <dl class="liste-def">
+            <div><dt>Prix affiché (aller-retour, taxes incluses)</dt><dd>122 €</dd></div>
+            <div><dt>Supplément bagage en soute</dt><dd>aucun : 23 kg inclus</dd></div>
+            <div><dt>Frais obligatoires</dt><dd>inconnus (non visibles sans parcours de réservation)</dd></div>
+            <div class="total"><dt>Total observé</dt><dd>122 €</dd></div>
+          </dl>
+          <p class="note">Non séparable : prix total aller-retour (taxes incluses) affiché par le comparateur. Bagage 23 kg inclus par la compagnie (0 € de supplément). Frais éventuels d&#x27;agence ou de paiement : inconnus.</p>
+          <p class="note"><strong>Vendeur :</strong> Non identifié (meilleur prix affiché par momondo, peut être une agence).</p>
+          <p class="note"><strong>Source :</strong> momondo.be — page « Vols pas chers de Bruxelles pour Tunis » — collecte : Inconnue, vraisemblablement vers le 20–25/09/2026 (la même page affiche un 129 € pour le 24-27/09).</p>
+          <p class="note"><strong>Preuve :</strong> aucune capture (pages de réservation inaccessibles depuis l'environnement de recherche). Les extraits de source sont consignés dans <a href="sources.md">sources.md</a>.</p>
+          <p class="note"><strong>Autres comparateurs (dates pré-remplies) :</strong>
+            <a href="https://www.skyscanner.fr/transport/vols/bru/tun/261008/261011/?adultsv2=1&amp;cabinclass=economy&amp;rtn=1&amp;preferdirects=true" target="_blank" rel="noopener">Skyscanner</a> ·
+            <a href="https://www.kayak.fr/flights/BRU-TUN/2026-10-08/2026-10-11?sort=price_a&amp;fs=stops=0" target="_blank" rel="noopener">KAYAK</a> ·
+            <a href="https://www.momondo.fr/flight-search/BRU-TUN/2026-10-08/2026-10-11?sort=price_a&amp;fs=stops=0" target="_blank" rel="noopener">momondo</a></p>
+          <p class="note">Départ dans 4 jours : à ce stade, le tarif a probablement augmenté depuis sa collecte. Prix bas mais séjour court (3 nuits).</p>
+        </div>
+      </details>
+    </section>
+
+  <div class="alternatives">
+    <article class="carte" id="n2" aria-labelledby="titre-n2">
+        <div class="carte-tete">
+          <h3 id="titre-n2"><span aria-hidden="true">🥈</span> Option n°2</h3>
+          <div class="badges"><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span><span class="badge badge-reverifier"><span class="badge-ico" aria-hidden="true">!</span>À REVÉRIFIER</span></div>
+        </div>
+        <div class="carte-prix">
+          <p class="prix-carte">125 €</p>
+          <ul class="ecarts" aria-label="Comparaison avec le n°1">
+            <li class="ecart-prix">+3 € vs n°1</li>
+            <li class="ecart-nuits">même durée</li>
+          </ul>
+        </div>
+        <p class="avantage">Week-end prolongé en fin de mois, mêmes vols Tunisair.</p>
+        <p class="trajet trajet-petit">Bruxelles-Zaventem <abbr title="code IATA">BRU</abbr> → Tunis <abbr title="code IATA">TUN</abbr></p>
+        <p class="dates">ven. 23 oct. → lun. 26 oct. 2026 · <strong>3 nuits</strong></p>
+        <p class="cie">Tunisair · <span class="pastille pastille-direct">DIRECT</span> · <span class="muet">23 kg en soute inclus</span></p>
+        <dl class="horaires">
+          <div><dt>Aller</dt><dd>12:25 → 14:00 <span class="muet">· 2 h 35</span></dd></div>
+          <div><dt>Retour</dt><dd>07:50 → 11:25 <span class="muet">· 2 h 35</span></dd></div>
+        </dl><p class="note-horaire">Retour après le passage à l&#x27;heure d&#x27;hiver (25/10) : l&#x27;heure d&#x27;arrivée à Bruxelles peut changer, à confirmer.</p>
+        <div class="actions actions-carte">
+        <a class="btn btn-secondaire" href="https://www.google.com/travel/flights?q=Flights+from+BRU+to+TUN+on+2026-10-23+through+2026-10-26+nonstop&amp;hl=fr&amp;gl=BE&amp;curr=EUR" target="_blank" rel="noopener">Voir / réserver l'offre</a>
+        <a class="lien-discret" href="https://www.tunisair.com/fr" target="_blank" rel="noopener">tunisair.com</a>
+        <a class="lien-discret" href="https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis" target="_blank" rel="noopener">Source du prix</a>
+      </div>
+        <p class="compo imprime"><strong>Composition :</strong> total affiché 125 € (taxes incluses, non séparable) · bagage 23 kg inclus (0 €) · frais d&#x27;agence ou de paiement : inconnus</p>
+        <p class="horodatage">Observé le 04/10/2026 vers 12:35 · momondo.be — page « Vols pas chers de Bruxelles pour Tunis »</p>
+        <details class="details">
+        <summary>Composition du prix, preuves et liens</summary>
+        <div class="details-corps">
+          <dl class="liste-def">
+            <div><dt>Prix affiché (aller-retour, taxes incluses)</dt><dd>125 €</dd></div>
+            <div><dt>Supplément bagage en soute</dt><dd>aucun : 23 kg inclus</dd></div>
+            <div><dt>Frais obligatoires</dt><dd>inconnus (non visibles sans parcours de réservation)</dd></div>
+            <div class="total"><dt>Total observé</dt><dd>125 €</dd></div>
+          </dl>
+          <p class="note">Non séparable : prix total aller-retour (taxes incluses) affiché par le comparateur. Bagage 23 kg inclus (0 €). Frais éventuels : inconnus.</p>
+          <p class="note"><strong>Vendeur :</strong> Non identifié (meilleur prix affiché par momondo).</p>
+          <p class="note"><strong>Source :</strong> momondo.be — page « Vols pas chers de Bruxelles pour Tunis » — collecte : Inconnue, vraisemblablement vers le 20–25/09/2026.</p>
+          <p class="note"><strong>Preuve :</strong> aucune capture (pages de réservation inaccessibles depuis l'environnement de recherche). Les extraits de source sont consignés dans <a href="sources.md">sources.md</a>.</p>
+          <p class="note"><strong>Autres comparateurs (dates pré-remplies) :</strong>
+            <a href="https://www.skyscanner.fr/transport/vols/bru/tun/261023/261026/?adultsv2=1&amp;cabinclass=economy&amp;rtn=1&amp;preferdirects=true" target="_blank" rel="noopener">Skyscanner</a> ·
+            <a href="https://www.kayak.fr/flights/BRU-TUN/2026-10-23/2026-10-26?sort=price_a&amp;fs=stops=0" target="_blank" rel="noopener">KAYAK</a> ·
+            <a href="https://www.momondo.fr/flight-search/BRU-TUN/2026-10-23/2026-10-26?sort=price_a&amp;fs=stops=0" target="_blank" rel="noopener">momondo</a></p>
+          <p class="note">Même aller que le n°3 mais retour un jour plus tôt. Le retour a lieu juste après le passage à l&#x27;heure d&#x27;hiver.</p>
+        </div>
+      </details>
+      </article>
+    <article class="carte" id="n3" aria-labelledby="titre-n3">
+        <div class="carte-tete">
+          <h3 id="titre-n3"><span aria-hidden="true">🥉</span> Option n°3</h3>
+          <div class="badges"><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span><span class="badge badge-reverifier"><span class="badge-ico" aria-hidden="true">!</span>À REVÉRIFIER</span></div>
+        </div>
+        <div class="carte-prix">
+          <p class="prix-carte">126 €</p>
+          <ul class="ecarts" aria-label="Comparaison avec le n°1">
+            <li class="ecart-prix">+4 € vs n°1</li>
+            <li class="ecart-nuits">+1 nuit</li>
+          </ul>
+        </div>
+        <p class="avantage">Quatre nuits sur place pour presque le même prix. <span class="muet">Par rapport au n°2 : +1 €, +1 nuit.</span></p>
+        <p class="trajet trajet-petit">Bruxelles-Zaventem <abbr title="code IATA">BRU</abbr> → Tunis <abbr title="code IATA">TUN</abbr></p>
+        <p class="dates">ven. 23 oct. → mar. 27 oct. 2026 · <strong>4 nuits</strong></p>
+        <p class="cie">Tunisair · <span class="pastille pastille-direct">DIRECT</span> · <span class="muet">23 kg en soute inclus</span></p>
+        <dl class="horaires">
+          <div><dt>Aller</dt><dd>12:25 → 14:00 <span class="muet">· 2 h 35</span></dd></div>
+          <div><dt>Retour</dt><dd>07:50 → 11:25 <span class="muet">· 2 h 35</span></dd></div>
+        </dl><p class="note-horaire">Retour après le passage à l&#x27;heure d&#x27;hiver (25/10) : l&#x27;heure d&#x27;arrivée à Bruxelles peut changer, à confirmer.</p>
+        <div class="actions actions-carte">
+        <a class="btn btn-secondaire" href="https://www.google.com/travel/flights?q=Flights+from+BRU+to+TUN+on+2026-10-23+through+2026-10-27+nonstop&amp;hl=fr&amp;gl=BE&amp;curr=EUR" target="_blank" rel="noopener">Voir / réserver l'offre</a>
+        <a class="lien-discret" href="https://www.tunisair.com/fr" target="_blank" rel="noopener">tunisair.com</a>
+        <a class="lien-discret" href="https://www.skyscanner.fr/itineraires/bru/tun/bruxelles-international-a-tunis-carthage.html" target="_blank" rel="noopener">Source du prix</a>
+      </div>
+        <p class="compo imprime"><strong>Composition :</strong> total affiché 126 € (taxes incluses, non séparable) · bagage 23 kg inclus (0 €) · frais d&#x27;agence ou de paiement : inconnus</p>
+        <p class="horodatage">Observé le 04/10/2026 vers 12:35 · Skyscanner — pages de route Bruxelles → Tunis (skyscanner.fr et skyscanner.com)</p>
+        <details class="details">
+        <summary>Composition du prix, preuves et liens</summary>
+        <div class="details-corps">
+          <dl class="liste-def">
+            <div><dt>Prix affiché (aller-retour, taxes incluses)</dt><dd>126 €</dd></div>
+            <div><dt>Supplément bagage en soute</dt><dd>aucun : 23 kg inclus</dd></div>
+            <div><dt>Frais obligatoires</dt><dd>inconnus (non visibles sans parcours de réservation)</dd></div>
+            <div class="total"><dt>Total observé</dt><dd>126 €</dd></div>
+          </dl>
+          <p class="note">Non séparable : prix total aller-retour (taxes incluses) affiché par le comparateur. Bagage 23 kg inclus (0 €). Frais éventuels : inconnus.</p>
+          <p class="note"><strong>Vendeur :</strong> Non identifié (meilleur prix affiché par Skyscanner).</p>
+          <p class="note"><strong>Source :</strong> Skyscanner — pages de route Bruxelles → Tunis (skyscanner.fr et skyscanner.com) — collecte : Inconnue (page indexée). Cohérent avec le meilleur aller-retour affiché par skyscanner.net : 109 £ ≈ 128 €..</p>
+          <p class="note"><strong>Preuve :</strong> aucune capture (pages de réservation inaccessibles depuis l'environnement de recherche). Les extraits de source sont consignés dans <a href="sources.md">sources.md</a>.</p>
+          <p class="note"><strong>Autres comparateurs (dates pré-remplies) :</strong>
+            <a href="https://www.skyscanner.fr/transport/vols/bru/tun/261023/261027/?adultsv2=1&amp;cabinclass=economy&amp;rtn=1&amp;preferdirects=true" target="_blank" rel="noopener">Skyscanner</a> ·
+            <a href="https://www.kayak.fr/flights/BRU-TUN/2026-10-23/2026-10-27?sort=price_a&amp;fs=stops=0" target="_blank" rel="noopener">KAYAK</a> ·
+            <a href="https://www.momondo.fr/flight-search/BRU-TUN/2026-10-23/2026-10-27?sort=price_a&amp;fs=stops=0" target="_blank" rel="noopener">momondo</a></p>
+          <p class="note">Vue sur deux pages Skyscanner (.fr et .com). Le même aller du 23/10 est aussi affiché à 125 € par momondo (retour le 26/10), ce qui rend ce niveau de prix plausible.</p>
+        </div>
+      </details>
+      </article>
+  </div>
+
+  <section class="section" id="comparaison" aria-labelledby="titre-comparaison">
+      <h2 id="titre-comparaison">Comparer les trois offres</h2>
+      <div class="table-cadre">
+        <table class="comparatif">
+          <caption class="sr">Comparaison des trois meilleures offres observées</caption>
+          <thead><tr>
+            <th scope="col">Rang</th><th scope="col">Prix final</th><th scope="col">Départ</th>
+            <th scope="col">Aller</th><th scope="col">Retour</th><th scope="col">Nuits</th>
+            <th scope="col">Compagnie</th><th scope="col">Vol</th><th scope="col">Bagage</th>
+            <th scope="col">Vendeur</th><th scope="col">Statut</th>
+          </tr></thead>
+          <tbody><tr class="ligne-n1">
+          <th scope="row" data-label="Rang"><span class="v">🏆 n°1</span></th>
+          <td data-label="Prix final" class="num"><span class="v"><strong>122 €</strong></span></td>
+          <td data-label="Départ"><span class="v">BRU <span class="muet">Bruxelles-Zaventem</span></span></td>
+          <td data-label="Aller"><span class="v">jeu. 8 oct.</span></td>
+          <td data-label="Retour"><span class="v">dim. 11 oct.</span></td>
+          <td data-label="Nuits" class="num"><span class="v">3</span></td>
+          <td data-label="Compagnie"><span class="v">Tunisair</span></td>
+          <td data-label="Vol"><span class="v">Direct</span></td>
+          <td data-label="Bagage"><span class="v">23 kg en soute inclus</span></td>
+          <td data-label="Vendeur"><span class="v">non identifié <span class="muet">(conseil : tunisair.com)</span></span></td>
+          <td data-label="Statut"><span class="v"><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></span></td>
+        </tr><tr>
+          <th scope="row" data-label="Rang"><span class="v">🥈 n°2</span></th>
+          <td data-label="Prix final" class="num"><span class="v"><strong>125 €</strong></span></td>
+          <td data-label="Départ"><span class="v">BRU <span class="muet">Bruxelles-Zaventem</span></span></td>
+          <td data-label="Aller"><span class="v">ven. 23 oct.</span></td>
+          <td data-label="Retour"><span class="v">lun. 26 oct.</span></td>
+          <td data-label="Nuits" class="num"><span class="v">3</span></td>
+          <td data-label="Compagnie"><span class="v">Tunisair</span></td>
+          <td data-label="Vol"><span class="v">Direct</span></td>
+          <td data-label="Bagage"><span class="v">23 kg en soute inclus</span></td>
+          <td data-label="Vendeur"><span class="v">non identifié <span class="muet">(conseil : tunisair.com)</span></span></td>
+          <td data-label="Statut"><span class="v"><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></span></td>
+        </tr><tr>
+          <th scope="row" data-label="Rang"><span class="v">🥉 n°3</span></th>
+          <td data-label="Prix final" class="num"><span class="v"><strong>126 €</strong></span></td>
+          <td data-label="Départ"><span class="v">BRU <span class="muet">Bruxelles-Zaventem</span></span></td>
+          <td data-label="Aller"><span class="v">ven. 23 oct.</span></td>
+          <td data-label="Retour"><span class="v">mar. 27 oct.</span></td>
+          <td data-label="Nuits" class="num"><span class="v">4</span></td>
+          <td data-label="Compagnie"><span class="v">Tunisair</span></td>
+          <td data-label="Vol"><span class="v">Direct</span></td>
+          <td data-label="Bagage"><span class="v">23 kg en soute inclus</span></td>
+          <td data-label="Vendeur"><span class="v">non identifié <span class="muet">(conseil : tunisair.com)</span></span></td>
+          <td data-label="Statut"><span class="v"><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></span></td>
+        </tr></tbody>
+        </table>
+      </div>
+      <p class="note">Les trois offres partent de Bruxelles-Zaventem (104 km de Lille ; ≈1 h 15 en voiture, estimation) avec les mêmes vols Tunisair. Seules les dates changent : entre le n°1 et le n°3, l'écart n'est que de 4 €, trop peu pour départager les offres sans vérification.</p>
+    </section>
+  <section class="section" id="a-savoir" aria-labelledby="titre-savoir">
+      <h2 id="titre-savoir">À savoir aussi</h2>
+      <p class="chapeau">Meilleur vol direct : n°1 (122 €). Meilleur départ de Bruxelles : n°1 (122 €). Les trois premières offres sont des vols directs Tunisair au départ de Bruxelles-Zaventem.</p>
+      <div class="grille-infos">
+        <article class="info">
+          <h3>Meilleur rapport prix / durée</h3>
+          <p class="info-prix">143 € <span class="muet">· 9 nuits</span></p>
+          <p>lun. 12 oct. → mer. 21 oct. · Bruxelles · Tunisair direct · 23 kg inclus</p>
+          <p class="info-ecart">+21 € vs n°1, pour 6 nuits de plus</p>
+          <p><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></p>
+        </article>
+        <article class="info">
+          <h3>Meilleur départ de Lille</h3>
+          <p class="info-prix">≈297 € <span class="muet">· 7 nuits</span></p>
+          <p>mar. 13 oct. → mar. 20 oct. · Nouvelair direct · bagage en soute non garanti</p>
+          <p class="info-ecart">au moins +175 € vs n°1</p>
+          <p><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span><span class="badge badge-reverifier"><span class="badge-ico" aria-hidden="true">!</span>À REVÉRIFIER</span></p>
+        </article>
+        <article class="info">
+          <h3>Paris, hors rayon (218 km)</h3>
+          <p class="info-prix">≈210–215 €</p>
+          <p>Transavia depuis Orly, avec 20 kg aller-retour ajoutés : <strong>pas d'économie</strong> par rapport à Bruxelles.</p>
+          <p><span class="badge badge-estime"><span class="badge-ico" aria-hidden="true">≈</span>ESTIMÉ</span></p>
+        </article>
+        <article class="info">
+          <h3>Charleroi</h3>
+          <p class="info-prix">Aucun direct</p>
+          <p>La ligne TUI fly Charleroi–Tunis n'est pas opérée en octobre 2026 (vols annulés).</p>
+          <p><span class="badge badge-indispo"><span class="badge-ico" aria-hidden="true">✕</span>INDISPONIBLE</span></p>
+        </article>
+      </div>
+      <h3 class="sous-titre">Autres dates remarquables</h3>
+      <ul class="liste-rem"><li><strong>mer. 7 oct. → dim. 11 oct.</strong> · BRU · Tunisair · 143 € <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span><br><span class="muet">Seule observation dont la date de collecte est connue (17/09). Départ dans 3 jours.</span></li><li><strong>lun. 5 oct. → jeu. 8 oct.</strong> · BRU · Nouvelair · 153 € sans bagage <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span><br><span class="muet">Déjà plus cher que Tunisair avant même d&#x27;ajouter le bagage : écarté du classement.</span></li><li><strong>ven. 30 oct. → sam. 31 oct.</strong> · BRU · Tunisair · 246 € <span class="badge badge-estime"><span class="badge-ico" aria-hidden="true">≈</span>ESTIMÉ</span><br><span class="muet">Le retour du 31/10 est cher : fin octobre, mieux vaut rentrer avant.</span></li></ul>
+    </section>
+  <section class="section" id="fiabilite" aria-labelledby="titre-fiabilite">
+      <h2 id="titre-fiabilite">Niveau de confiance : recherche partielle</h2>
+      <div class="grille-fiab">
+        <div>
+          <ul class="couverture">
+            <li><strong>Aéroports :</strong> ≈100 % : tous les aéroports commerciaux à 150 km ou moins ont été examinés (11), plus Liège et Paris hors rayon.</li>
+            <li><strong>Compagnies :</strong> Tunisair, Nouvelair, TUI fly (Charleroi), Transavia (Paris, hors rayon) ; correspondances Lufthansa, ITA, Swiss / Brussels Airlines, Turkish, Air France (TGV AIR), Royal Air Maroc.</li>
+            <li><strong>Dates :</strong> Partielle. Bruxelles–Tunis (Tunisair, quotidien) : 6 combinaisons datées observées sur 378 possibles ; la vue calendrier des comparateurs n&#x27;était pas accessible. Lille : 3 combinaisons observées.</li>
+            <li><strong>Vérification :</strong> 0 % : aucun parcours de réservation n&#x27;a pu être ouvert (accès réseau bloqué). Aucune seconde vérification possible.</li>
+            <li><strong>Reste à couvrir :</strong> Toutes les dates Bruxelles–Tunis non affichées par les comparateurs (notamment du 13 au 22/10 et du 27 au 31/10), les prix actuels (au 04/10) des 3 premières offres, les frais d&#x27;agence, et le tarif Nouvelair « Easy » avec 25 kg.</li>
+          </ul>
+          <p class="note"><strong>Pourquoi :</strong> La politique réseau de l&#x27;environnement cloud bloque tous les sites de vols (Google Flights, Skyscanner, Kayak, Momondo, sites des compagnies) : erreur 403 « EGRESS_BLOCKED ». Seul l&#x27;outil de recherche web (index de recherche) était utilisable. Aucun parcours de réservation n&#x27;a pu être ouvert : aucun prix n&#x27;a pu être VÉRIFIÉ, aucune capture de preuve n&#x27;a pu être faite, aucune seconde vérification n&#x27;a été possible.</p>
+        </div>
+        <div class="encadre">
+          <h3>Vérifier en 2 minutes avant d'acheter</h3>
+          <ol><li>Ouvrir tunisair.com : aller-retour BRU → TUN, 1 adulte, dates de l&#x27;offre, classe Économie.</li><li>Contrôler sur le récapitulatif que le bagage en soute de 23 kg est bien inclus.</li><li>Comparer avec le lien Google Flights (filtre « sans escale », 1 bagage en soute).</li><li>Si une agence est moins chère de quelques euros seulement, préférer tunisair.com.</li><li>S&#x27;arrêter avant le paiement et noter le prix et l&#x27;heure.</li></ol>
+        </div>
+      </div>
+      <h3 class="sous-titre">Que signifient les statuts ?</h3>
+      <ul class="legende"><li><span class="badge badge-verifie"><span class="badge-ico" aria-hidden="true">✓</span>VÉRIFIÉ</span> <span>Prix final confirmé dans le parcours de réservation, bagage ajouté, juste avant paiement.</span></li><li><span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span> <span>Prix affiché pour des dates précises par un comparateur (page indexée). Date de collecte de la source inconnue ou ancienne. Non confirmé.</span></li><li><span class="badge badge-estime"><span class="badge-ico" aria-hidden="true">≈</span>ESTIMÉ</span> <span>Montant calculé par moi (conversion de devise, ou ajout d&#x27;un tarif bagage public). Jamais une certitude.</span></li><li><span class="badge badge-reverifier"><span class="badge-ico" aria-hidden="true">!</span>À REVÉRIFIER</span> <span>À confirmer sur le site de la compagnie avant toute décision.</span></li><li><span class="badge badge-indispo"><span class="badge-ico" aria-hidden="true">✕</span>INDISPONIBLE</span> <span>Liaison ou offre non opérée / introuvable pour la période.</span></li></ul>
+    </section>
+  <section class="section" id="aeroports" aria-labelledby="titre-aeroports">
+      <details class="details details-section">
+        <summary><h2 id="titre-aeroports">Aéroports examinés autour de Lille (11)</h2></summary>
+        <div class="details-corps">
+          <p class="note">Distances à vol d'oiseau depuis la Grand-Place de Lille. Seuls Lille et Bruxelles-Zaventem ont un vol direct vers Tunis en octobre 2026.</p>
+          <div class="table-cadre">
+            <table class="tableau-aeroports">
+              <caption class="sr">Aéroports commerciaux dans un rayon d'environ 150 km</caption>
+              <thead><tr><th scope="col">Aéroport</th><th scope="col">Distance</th><th scope="col">Direct vers TUN</th><th scope="col">Compagnies</th><th scope="col">Exploitation constatée</th></tr></thead>
+              <tbody><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">LIL <span class="muet">Lille-Lesquin</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">8 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v"><strong>oui</strong></span></td>
+          <td data-label="Compagnies"><span class="v">Nouvelair (BJ739 Lille→Tunis, BJ738 Tunis→Lille)</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Hebdomadaire, le samedi (LIL 21:45 → TUN 23:30 ; TUN 16:15 → LIL ≈19:55, horaires d&#x27;été). Un vol le mardi est aussi affiché par Skyscanner (13/10 → 20/10), non confirmé. Ligne programmée jusqu&#x27;au 31/10/2026, puis interrompue de novembre 2026 à juin 2027.</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">KJK <span class="muet">Courtrai-Wevelgem</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">22 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non</span></td>
+          <td data-label="Compagnies"><span class="v">—</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Pas de ligne régulière de passagers</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">OST <span class="muet">Ostende-Bruges</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">64 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non</span></td>
+          <td data-label="Compagnies"><span class="v">TUI fly (Espagne, Grèce, Turquie, Égypte en 2026)</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Aucune liaison Tunisie en 2026</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">BYF <span class="muet">Albert-Picardie</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">78 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non</span></td>
+          <td data-label="Compagnies"><span class="v">—</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Pas de ligne régulière de passagers</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">CQF <span class="muet">Calais-Dunkerque</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">86 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non</span></td>
+          <td data-label="Compagnies"><span class="v">—</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Pas de ligne régulière de passagers</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">CRL <span class="muet">Bruxelles-Sud Charleroi</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">100 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non confirmé</span></td>
+          <td data-label="Compagnies"><span class="v">TUI fly (TB2741 / TB2742)</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Ligne ouverte en 2017 (2 vols par semaine) ; TB2742 signalé annulé, TB2741 non opéré récemment ; la page Tunisie de TUI fly ne propose que Djerba et Enfidha. Considérée comme non opérée en octobre 2026.</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">LTQ <span class="muet">Le Touquet-Côte d&#x27;Opale</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">103 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non</span></td>
+          <td data-label="Compagnies"><span class="v">—</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Aucune ligne vers la Tunisie</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">BRU <span class="muet">Bruxelles-Zaventem</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">104 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v"><strong>oui</strong></span></td>
+          <td data-label="Compagnies"><span class="v">Tunisair (TU955 / TU954) ; Nouvelair (BJ397 / BJ396)</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Tunisair : quotidien (BRU 12:25 → TUN 14:00 ; TUN 07:50 → BRU 11:25, horaires d&#x27;été). Nouvelair : environ 5 vols par semaine, horaires variables (11:15 à 21:15). Environ 12 à 14 vols directs par semaine au total.</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">ANR <span class="muet">Anvers-Deurne</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">116 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non</span></td>
+          <td data-label="Compagnies"><span class="v">TUI fly (Enfidha saisonnier)</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Pas de direct vers Tunis</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">BVA <span class="muet">Paris-Beauvais</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">148 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non</span></td>
+          <td data-label="Compagnies"><span class="v">—</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Pas de direct vers Tunis (Ryanair et Wizz Air ne desservent pas la Tunisie)</span></td>
+        </tr><tr>
+          <th scope="row" data-label="Aéroport"><span class="v">LYX <span class="muet">Lydd (Royaume-Uni)</span></span></th>
+          <td data-label="Distance" class="num"><span class="v">153 km</span></td>
+          <td data-label="Direct vers TUN"><span class="v">non</span></td>
+          <td data-label="Compagnies"><span class="v">—</span></td>
+          <td data-label="Exploitation constatée"><span class="v">Aucune ligne vers la Tunisie</span></td>
+        </tr></tbody>
+            </table>
+          </div>
+          <h3 class="sous-titre">Au-delà de 150 km (étudiés comme exceptions possibles)</h3>
+          <ul><li><strong>LGG Liège</strong> (168 km) : TUI a quitté Liège en janvier 2026 : plus de vols de passagers vers la Tunisie.</li><li><strong>CDG Paris-Charles de Gaulle</strong> (185 km) : Directs Tunisair, Nouvelair, Air France. Tunisair Paris « à partir de 596 TND » (≈176 €, ESTIMÉ).</li><li><strong>ORY Paris-Orly</strong> (218 km) : Directs Transavia, Tunisair, Nouvelair. Transavia : 130–135 € sans bagage (5-9/10, 9-12/10), soit ≈210–215 € avec 20 kg aller-retour (ESTIMÉ). Aucune économie par rapport à Bruxelles.</li></ul>
+        </div>
+      </details>
+    </section>
+  <section class="section" id="methode" aria-labelledby="titre-methode">
+      <details class="details details-section">
+        <summary><h2 id="titre-methode">Méthode et sources</h2></summary>
+        <div class="details-corps">
+          <ol class="methode">
+            <li><strong>Cartographie</strong> des aéroports à moins de 150 km de Lille (distances calculées) et des liaisons réellement programmées en octobre 2026 (sites de suivi de vols, presse aéronautique, page de l'aéroport de Lille).</li>
+            <li><strong>Découverte des prix</strong> dans les pages de route de Skyscanner, momondo, KAYAK, Google Flights, monde-du-voyage, liligo, Trip.com, eDreams/Opodo, consultées via un moteur de recherche (seul accès possible).</li>
+            <li><strong>Bagage</strong> : franchise Tunisair Europe ⇄ Tunisie = 23 kg inclus en Économie (le tarif « Light » sans soute n'existe que sur le Maroc) ; Nouvelair « Light » sans soute, « Easy » 25 kg ; Transavia 20 kg ≈ 40 € par trajet.</li>
+            <li><strong>Classement</strong> sur le prix total observé, bagage ≥ 20 kg compris ; les offres sans bagage garanti sont écartées du TOP 3.</li>
+            <li><strong>Vérification</strong> : impossible pendant cette recherche (accès bloqué). Elle reste à faire avant tout achat.</li>
+          </ol>
+          <h3 class="sous-titre">Traçabilité du TOP 3</h3>
+          <div class="table-cadre">
+            <table class="tableau-tracabilite">
+              <caption class="sr">Source, URL et heure d'observation de chaque offre du TOP 3</caption>
+              <thead><tr><th scope="col">Rang</th><th scope="col">Prix et statut</th><th scope="col">Source</th><th scope="col">Observé</th><th scope="col">Vérifier ici</th></tr></thead>
+              <tbody><tr>
+          <th scope="row" data-label="Rang"><span class="v">n°1</span></th>
+          <td data-label="Prix et statut"><span class="v">122 € <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></span></td>
+          <td data-label="Source"><span class="v">momondo.be — page « Vols pas chers de Bruxelles pour Tunis »<br><a class="url" href="https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis" target="_blank" rel="noopener">https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis</a></span></td>
+          <td data-label="Observé"><span class="v">04/10/2026 ≈12:35, <strong>non vérifié</strong><br><span class="muet">collecte : inconnue, vraisemblablement vers le 20–25/09/2026 (la même page affiche un 129 € pour le 24-27/09)</span></span></td>
+          <td data-label="Vérifier ici"><span class="v"><a href="https://www.google.com/travel/flights?q=Flights+from+BRU+to+TUN+on+2026-10-08+through+2026-10-11+nonstop&amp;hl=fr&amp;gl=BE&amp;curr=EUR" target="_blank" rel="noopener">Google Flights</a> (dates pré-remplies)<br><a href="https://www.tunisair.com/fr" target="_blank" rel="noopener">tunisair.com/fr</a></span></td>
+        </tr><tr>
+          <th scope="row" data-label="Rang"><span class="v">n°2</span></th>
+          <td data-label="Prix et statut"><span class="v">125 € <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></span></td>
+          <td data-label="Source"><span class="v">momondo.be — page « Vols pas chers de Bruxelles pour Tunis »<br><a class="url" href="https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis" target="_blank" rel="noopener">https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis</a></span></td>
+          <td data-label="Observé"><span class="v">04/10/2026 ≈12:35, <strong>non vérifié</strong><br><span class="muet">collecte : inconnue, vraisemblablement vers le 20–25/09/2026</span></span></td>
+          <td data-label="Vérifier ici"><span class="v"><a href="https://www.google.com/travel/flights?q=Flights+from+BRU+to+TUN+on+2026-10-23+through+2026-10-26+nonstop&amp;hl=fr&amp;gl=BE&amp;curr=EUR" target="_blank" rel="noopener">Google Flights</a> (dates pré-remplies)<br><a href="https://www.tunisair.com/fr" target="_blank" rel="noopener">tunisair.com/fr</a></span></td>
+        </tr><tr>
+          <th scope="row" data-label="Rang"><span class="v">n°3</span></th>
+          <td data-label="Prix et statut"><span class="v">126 € <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></span></td>
+          <td data-label="Source"><span class="v">Skyscanner — pages de route Bruxelles → Tunis (skyscanner.fr et skyscanner.com)<br><a class="url" href="https://www.skyscanner.fr/itineraires/bru/tun/bruxelles-international-a-tunis-carthage.html" target="_blank" rel="noopener">https://www.skyscanner.fr/itineraires/bru/tun/bruxelles-international-a-tunis-carthage.html</a></span></td>
+          <td data-label="Observé"><span class="v">04/10/2026 ≈12:35, <strong>non vérifié</strong><br><span class="muet">collecte : inconnue (page indexée). Cohérent avec le meilleur aller-retour affiché par skyscanner.net : 109 £ ≈ 128 €.</span></span></td>
+          <td data-label="Vérifier ici"><span class="v"><a href="https://www.google.com/travel/flights?q=Flights+from+BRU+to+TUN+on+2026-10-23+through+2026-10-27+nonstop&amp;hl=fr&amp;gl=BE&amp;curr=EUR" target="_blank" rel="noopener">Google Flights</a> (dates pré-remplies)<br><a href="https://www.tunisair.com/fr" target="_blank" rel="noopener">tunisair.com/fr</a></span></td>
+        </tr></tbody>
+            </table>
+          </div>
+          <h3 class="sous-titre">Prix de référence sans dates précises</h3>
+          <ul class="liste-ref"><li><strong>BRU → TUN · Lufthansa (1 correspondance, ≈4 h 30)</strong> : à partir de 144 € — Avec un bagage en soute, au-delà de 200 € (ESTIMÉ). Non compétitif. <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></li><li><strong>BRU → TUN · ITA Airways (1 correspondance via Rome)</strong> : à partir de 207 € — Non compétitif. <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></li><li><strong>BRU → TUN · Swiss / Brussels Airlines (correspondances)</strong> : à partir de 191 € — Non compétitif. <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></li><li><strong>BRU → TUN · Turkish Airlines (via Istanbul)</strong> : à partir de 399 € — Non compétitif. <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></li><li><strong>BRU → TUN · Tunisair (Google Flights)</strong> : direct à partir de 148 € aller-retour — Dates non précisées. <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></li><li><strong>BRU → TUN · Nouvelair (Google Flights)</strong> : à partir de 138 € aller-retour — Dates non précisées (138 € vu pour le 2-4/10, hors période). <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></li><li><strong>LIL → TUN · TGV + Air France (AccesRail + Air France, via Paris-CDG)</strong> : 272 € aller-retour (Google Flights) — Dates non précisées. Non compétitif. <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></li><li><strong>CRL → TUN · Comparateurs (compagnie non précisée)</strong> : dès 118 € (9/10), 120 € (10/10), 125 € (24/10) — Probablement des allers simples, avec escale ou depuis Bruxelles-Zaventem. Non exploitable sans vérification. <span class="badge badge-observe"><span class="badge-ico" aria-hidden="true">◐</span>OBSERVÉ</span></li><li><strong>PAR → TUN · Tunisair</strong> : à partir de 596 TND (≈176 €) — Conversion approximative. Hors rayon et sans économie. <span class="badge badge-estime"><span class="badge-ico" aria-hidden="true">≈</span>ESTIMÉ</span></li></ul>
+          <p class="note">Toutes les observations, avec URL et statut : <a href="prix_observes.csv">prix_observes.csv</a> · détail des sources : <a href="sources.md">sources.md</a> · résultat texte : <a href="RESULTAT.md">RESULTAT.md</a> · données structurées : <a href="donnees/resultats.json">donnees/resultats.json</a>.</p>
+        </div>
+      </details>
+    </section>
+
+  <footer class="pied">
+    <p><strong>Les tarifs aériens sont dynamiques et peuvent évoluer après cette observation.</strong></p>
+    <p>Page générée le 04/10/2026 à partir de <code>donnees/resultats.json</code> (source de vérité) par <code>outils/construire.py</code>. Rien n'a été réservé ni payé.</p>
+  </footer>
+</main>
+<script type="application/json" id="donnees-source">{
+ "meta": {
+  "titre": "Vols vers Tunis — Octobre 2026",
+  "recherche_id": "2026-10-04_recherche",
+  "date_recherche": "2026-10-04",
+  "fenetre_recherche": "12:20–12:50 (heure de Paris, CEST)",
+  "derniere_observation": "2026-10-04 12:37",
+  "verification_reelle": false,
+  "statut_global": "PARTIELLE",
+  "voyageur": "1 adulte",
+  "periode": "aller et retour entre le 4 et le 31 octobre 2026 inclus",
+  "bagage_exige": "au moins 1 bagage en soute de 20 kg",
+  "point_reference": "Lille (Grand-Place), France",
+  "rayon_km": 150,
+  "aeroports_examines": 11,
+  "aeroports_avec_direct": 2,
+  "combinaisons_possibles_par_route_quotidienne": 378,
+  "offres_examinees": 22,
+  "limite_principale": "La politique réseau de l'environnement cloud bloque tous les sites de vols (Google Flights, Skyscanner, Kayak, Momondo, sites des compagnies) : erreur 403 « EGRESS_BLOCKED ». Seul l'outil de recherche web (index de recherche) était utilisable. Aucun parcours de réservation n'a pu être ouvert : aucun prix n'a pu être VÉRIFIÉ, aucune capture de preuve n'a pu être faite, aucune seconde vérification n'a été possible.",
+  "acces_pc": "Aucun outil de contrôle du PC Windows n'était disponible dans cette session : le dossier « vols » a été créé dans le dépôt GitHub (branche claude/tunis-cheapest-flight-oct-2026-uxi6qb) et non sur le Bureau.",
+  "taux_change": {
+   "source": "Taux publiés en Tunisie le 18/08/2026 (lapresse.tn / tunisienumerique.com) : 1 EUR = 3,3802 TND ; 1 USD = 2,9239 TND ; 1 GBP = 3,9595 TND",
+   "usd_eur": 0.865,
+   "gbp_eur": 1.171,
+   "tnd_eur": 0.296
+  },
+  "heure_ete": "Le 25/10/2026, la Belgique et la France passent à l'heure d'hiver (UTC+1, même heure que Tunis). Les horaires locaux des vols après cette date peuvent changer.",
+  "periode_debut": "2026-10-04",
+  "periode_fin": "2026-10-31"
+ },
+ "statuts": {
+  "VÉRIFIÉ": "Prix final confirmé dans le parcours de réservation, bagage ajouté, juste avant paiement.",
+  "OBSERVÉ": "Prix affiché pour des dates précises par un comparateur (page indexée). Date de collecte de la source inconnue ou ancienne. Non confirmé.",
+  "ESTIMÉ": "Montant calculé par moi (conversion de devise, ou ajout d'un tarif bagage public). Jamais une certitude.",
+  "À REVÉRIFIER": "À confirmer sur le site de la compagnie avant toute décision.",
+  "INDISPONIBLE": "Liaison ou offre non opérée / introuvable pour la période."
+ },
+ "aeroports": [
+  {
+   "code": "LIL",
+   "nom": "Lille-Lesquin",
+   "distance_km": 8,
+   "direct_tun": "oui",
+   "compagnies": "Nouvelair (BJ739 Lille→Tunis, BJ738 Tunis→Lille)",
+   "jours": "Hebdomadaire, le samedi (LIL 21:45 → TUN 23:30 ; TUN 16:15 → LIL ≈19:55, horaires d'été). Un vol le mardi est aussi affiché par Skyscanner (13/10 → 20/10), non confirmé. Ligne programmée jusqu'au 31/10/2026, puis interrompue de novembre 2026 à juin 2027.",
+   "statut": "OBSERVÉ",
+   "pertinent": true
+  },
+  {
+   "code": "KJK",
+   "nom": "Courtrai-Wevelgem",
+   "distance_km": 22,
+   "direct_tun": "non",
+   "compagnies": "—",
+   "jours": "Pas de ligne régulière de passagers",
+   "statut": "—",
+   "pertinent": false
+  },
+  {
+   "code": "OST",
+   "nom": "Ostende-Bruges",
+   "distance_km": 64,
+   "direct_tun": "non",
+   "compagnies": "TUI fly (Espagne, Grèce, Turquie, Égypte en 2026)",
+   "jours": "Aucune liaison Tunisie en 2026",
+   "statut": "OBSERVÉ",
+   "pertinent": false
+  },
+  {
+   "code": "BYF",
+   "nom": "Albert-Picardie",
+   "distance_km": 78,
+   "direct_tun": "non",
+   "compagnies": "—",
+   "jours": "Pas de ligne régulière de passagers",
+   "statut": "—",
+   "pertinent": false
+  },
+  {
+   "code": "CQF",
+   "nom": "Calais-Dunkerque",
+   "distance_km": 86,
+   "direct_tun": "non",
+   "compagnies": "—",
+   "jours": "Pas de ligne régulière de passagers",
+   "statut": "—",
+   "pertinent": false
+  },
+  {
+   "code": "CRL",
+   "nom": "Bruxelles-Sud Charleroi",
+   "distance_km": 100,
+   "direct_tun": "non confirmé",
+   "compagnies": "TUI fly (TB2741 / TB2742)",
+   "jours": "Ligne ouverte en 2017 (2 vols par semaine) ; TB2742 signalé annulé, TB2741 non opéré récemment ; la page Tunisie de TUI fly ne propose que Djerba et Enfidha. Considérée comme non opérée en octobre 2026.",
+   "statut": "INDISPONIBLE",
+   "pertinent": false
+  },
+  {
+   "code": "LTQ",
+   "nom": "Le Touquet-Côte d'Opale",
+   "distance_km": 103,
+   "direct_tun": "non",
+   "compagnies": "—",
+   "jours": "Aucune ligne vers la Tunisie",
+   "statut": "—",
+   "pertinent": false
+  },
+  {
+   "code": "BRU",
+   "nom": "Bruxelles-Zaventem",
+   "distance_km": 104,
+   "direct_tun": "oui",
+   "compagnies": "Tunisair (TU955 / TU954) ; Nouvelair (BJ397 / BJ396)",
+   "jours": "Tunisair : quotidien (BRU 12:25 → TUN 14:00 ; TUN 07:50 → BRU 11:25, horaires d'été). Nouvelair : environ 5 vols par semaine, horaires variables (11:15 à 21:15). Environ 12 à 14 vols directs par semaine au total.",
+   "statut": "OBSERVÉ",
+   "pertinent": true
+  },
+  {
+   "code": "ANR",
+   "nom": "Anvers-Deurne",
+   "distance_km": 116,
+   "direct_tun": "non",
+   "compagnies": "TUI fly (Enfidha saisonnier)",
+   "jours": "Pas de direct vers Tunis",
+   "statut": "OBSERVÉ",
+   "pertinent": false
+  },
+  {
+   "code": "BVA",
+   "nom": "Paris-Beauvais",
+   "distance_km": 148,
+   "direct_tun": "non",
+   "compagnies": "—",
+   "jours": "Pas de direct vers Tunis (Ryanair et Wizz Air ne desservent pas la Tunisie)",
+   "statut": "OBSERVÉ",
+   "pertinent": false
+  },
+  {
+   "code": "LYX",
+   "nom": "Lydd (Royaume-Uni)",
+   "distance_km": 153,
+   "direct_tun": "non",
+   "compagnies": "—",
+   "jours": "Aucune ligne vers la Tunisie",
+   "statut": "—",
+   "pertinent": false
+  }
+ ],
+ "hors_rayon": [
+  {
+   "code": "LGG",
+   "nom": "Liège",
+   "distance_km": 168,
+   "constat": "TUI a quitté Liège en janvier 2026 : plus de vols de passagers vers la Tunisie."
+  },
+  {
+   "code": "CDG",
+   "nom": "Paris-Charles de Gaulle",
+   "distance_km": 185,
+   "constat": "Directs Tunisair, Nouvelair, Air France. Tunisair Paris « à partir de 596 TND » (≈176 €, ESTIMÉ)."
+  },
+  {
+   "code": "ORY",
+   "nom": "Paris-Orly",
+   "distance_km": 218,
+   "constat": "Directs Transavia, Tunisair, Nouvelair. Transavia : 130–135 € sans bagage (5-9/10, 9-12/10), soit ≈210–215 € avec 20 kg aller-retour (ESTIMÉ). Aucune économie par rapport à Bruxelles."
+  }
+ ],
+ "offres": [
+  {
+   "id": "BRU-TU-1008-1011",
+   "aeroport": "Bruxelles-Zaventem",
+   "code": "BRU",
+   "distance_km": 104,
+   "date_aller": "2026-10-08",
+   "jour_aller": "jeudi",
+   "date_retour": "2026-10-11",
+   "jour_retour": "dimanche",
+   "nuits": 3,
+   "compagnie": "Tunisair",
+   "vols": "TU955 / TU954",
+   "type": "DIRECT",
+   "horaire_aller": "12:25 → 14:00",
+   "horaire_retour": "07:50 → 11:25",
+   "duree_aller": "2 h 35",
+   "duree_retour": "2 h 35",
+   "bagage": "1 bagage en soute de 23 kg inclus (franchise Tunisair classe Économie Europe ⇄ Tunisie) + bagage cabine 8 kg",
+   "bagage_court": "23 kg en soute inclus",
+   "vendeur": "Non identifié (meilleur prix affiché par momondo, peut être une agence)",
+   "prix_initial": 122,
+   "prix_bagage": 0,
+   "frais": null,
+   "prix_final": 122,
+   "devise_origine": "EUR",
+   "prix_origine": 122,
+   "ventilation": "Non séparable : prix total aller-retour (taxes incluses) affiché par le comparateur. Bagage 23 kg inclus par la compagnie (0 € de supplément). Frais éventuels d'agence ou de paiement : inconnus.",
+   "source": "momondo.be — page « Vols pas chers de Bruxelles pour Tunis »",
+   "url_source": "https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis",
+   "collecte_source": "Inconnue, vraisemblablement vers le 20–25/09/2026 (la même page affiche un 129 € pour le 24-27/09)",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:35",
+   "observations": "Départ dans 4 jours : à ce stade, le tarif a probablement augmenté depuis sa collecte. Prix bas mais séjour court (3 nuits).",
+   "bagage_20kg_garanti": true,
+   "point_fort": "Le moins cher observé, mais séjour court et départ très proche.",
+   "remarquable": false,
+   "rang": 1,
+   "dans_top3": true
+  },
+  {
+   "id": "BRU-TU-1023-1026",
+   "aeroport": "Bruxelles-Zaventem",
+   "code": "BRU",
+   "distance_km": 104,
+   "date_aller": "2026-10-23",
+   "jour_aller": "vendredi",
+   "date_retour": "2026-10-26",
+   "jour_retour": "lundi",
+   "nuits": 3,
+   "compagnie": "Tunisair",
+   "vols": "TU955 / TU954",
+   "type": "DIRECT",
+   "horaire_aller": "12:25 → 14:00",
+   "horaire_retour": "07:50 → 11:25",
+   "duree_aller": "2 h 35",
+   "duree_retour": "2 h 35",
+   "bagage": "1 bagage en soute de 23 kg inclus (franchise Tunisair classe Économie Europe ⇄ Tunisie) + bagage cabine 8 kg",
+   "bagage_court": "23 kg en soute inclus",
+   "vendeur": "Non identifié (meilleur prix affiché par momondo)",
+   "prix_initial": 125,
+   "prix_bagage": 0,
+   "frais": null,
+   "prix_final": 125,
+   "devise_origine": "EUR",
+   "prix_origine": 125,
+   "ventilation": "Non séparable : prix total aller-retour (taxes incluses) affiché par le comparateur. Bagage 23 kg inclus (0 €). Frais éventuels : inconnus.",
+   "source": "momondo.be — page « Vols pas chers de Bruxelles pour Tunis »",
+   "url_source": "https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis",
+   "collecte_source": "Inconnue, vraisemblablement vers le 20–25/09/2026",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:35",
+   "observations": "Même aller que le n°3 mais retour un jour plus tôt. Le retour a lieu juste après le passage à l'heure d'hiver.",
+   "note_horaire": "Retour après le passage à l'heure d'hiver (25/10) : l'heure d'arrivée à Bruxelles peut changer, à confirmer.",
+   "bagage_20kg_garanti": true,
+   "point_fort": "Week-end prolongé en fin de mois, mêmes vols Tunisair.",
+   "remarquable": false,
+   "rang": 2,
+   "dans_top3": true
+  },
+  {
+   "id": "BRU-TU-1023-1027",
+   "aeroport": "Bruxelles-Zaventem",
+   "code": "BRU",
+   "distance_km": 104,
+   "date_aller": "2026-10-23",
+   "jour_aller": "vendredi",
+   "date_retour": "2026-10-27",
+   "jour_retour": "mardi",
+   "nuits": 4,
+   "compagnie": "Tunisair",
+   "vols": "TU955 / TU954",
+   "type": "DIRECT",
+   "horaire_aller": "12:25 → 14:00",
+   "horaire_retour": "07:50 → 11:25",
+   "duree_aller": "2 h 35",
+   "duree_retour": "2 h 35",
+   "bagage": "1 bagage en soute de 23 kg inclus (franchise Tunisair classe Économie Europe ⇄ Tunisie) + bagage cabine 8 kg",
+   "bagage_court": "23 kg en soute inclus",
+   "vendeur": "Non identifié (meilleur prix affiché par Skyscanner)",
+   "prix_initial": 126,
+   "prix_bagage": 0,
+   "frais": null,
+   "prix_final": 126,
+   "devise_origine": "EUR",
+   "prix_origine": 126,
+   "ventilation": "Non séparable : prix total aller-retour (taxes incluses) affiché par le comparateur. Bagage 23 kg inclus (0 €). Frais éventuels : inconnus.",
+   "source": "Skyscanner — pages de route Bruxelles → Tunis (skyscanner.fr et skyscanner.com)",
+   "url_source": "https://www.skyscanner.fr/itineraires/bru/tun/bruxelles-international-a-tunis-carthage.html",
+   "collecte_source": "Inconnue (page indexée). Cohérent avec le meilleur aller-retour affiché par skyscanner.net : 109 £ ≈ 128 €.",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:35",
+   "observations": "Vue sur deux pages Skyscanner (.fr et .com). Le même aller du 23/10 est aussi affiché à 125 € par momondo (retour le 26/10), ce qui rend ce niveau de prix plausible.",
+   "note_horaire": "Retour après le passage à l'heure d'hiver (25/10) : l'heure d'arrivée à Bruxelles peut changer, à confirmer.",
+   "bagage_20kg_garanti": true,
+   "point_fort": "Quatre nuits sur place pour presque le même prix.",
+   "remarquable": false,
+   "rang": 3,
+   "dans_top3": true
+  },
+  {
+   "id": "BRU-TU-1012-1021",
+   "aeroport": "Bruxelles-Zaventem",
+   "code": "BRU",
+   "distance_km": 104,
+   "date_aller": "2026-10-12",
+   "jour_aller": "lundi",
+   "date_retour": "2026-10-21",
+   "jour_retour": "mercredi",
+   "nuits": 9,
+   "compagnie": "Tunisair",
+   "vols": "TU955 / TU954",
+   "type": "DIRECT",
+   "horaire_aller": "12:25 → 14:00",
+   "horaire_retour": "07:50 → 11:25",
+   "duree_aller": "2 h 35",
+   "duree_retour": "2 h 35",
+   "bagage": "1 bagage en soute de 23 kg inclus",
+   "bagage_court": "23 kg en soute inclus",
+   "vendeur": "Non identifié",
+   "prix_initial": 143,
+   "prix_bagage": 0,
+   "frais": null,
+   "prix_final": 143,
+   "devise_origine": "EUR",
+   "prix_origine": 143,
+   "ventilation": "Non séparable (prix total affiché).",
+   "source": "Page de comparateur indexée (monde-du-voyage.com ou liligo.fr ; attribution exacte incertaine)",
+   "url_source": "https://www.monde-du-voyage.com/tunisie/vol-tunis/depart-bruxelles/tunisair/",
+   "collecte_source": "Inconnue",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:45",
+   "observations": "Meilleur rapport prix / durée : +21 € par rapport au n°1 pour 6 nuits de plus.",
+   "categorie": "meilleur_rapport_duree",
+   "bagage_20kg_garanti": true,
+   "point_fort": "Neuf nuits sur place, toujours en direct avec bagage inclus.",
+   "remarquable": false,
+   "rang": 4,
+   "dans_top3": false
+  },
+  {
+   "id": "BRU-TU-1007-1011",
+   "aeroport": "Bruxelles-Zaventem",
+   "code": "BRU",
+   "distance_km": 104,
+   "date_aller": "2026-10-07",
+   "jour_aller": "mercredi",
+   "date_retour": "2026-10-11",
+   "jour_retour": "dimanche",
+   "nuits": 4,
+   "compagnie": "Tunisair",
+   "vols": "TU955 / TU954",
+   "type": "DIRECT",
+   "horaire_aller": "12:25 → 14:00",
+   "horaire_retour": "07:50 → 11:25",
+   "duree_aller": "2 h 35",
+   "duree_retour": "2 h 35",
+   "bagage": "1 bagage en soute de 23 kg inclus",
+   "bagage_court": "23 kg en soute inclus",
+   "vendeur": "Non identifié",
+   "prix_initial": 143,
+   "prix_bagage": 0,
+   "frais": null,
+   "prix_final": 143,
+   "devise_origine": "EUR",
+   "prix_origine": 143,
+   "ventilation": "Non séparable (prix total affiché, payable en 4 fois selon la source).",
+   "source": "monde-du-voyage.com — Vols Bruxelles → Tunis · Tunisair",
+   "url_source": "https://www.monde-du-voyage.com/tunisie/vol-tunis/depart-bruxelles/tunisair/",
+   "collecte_source": "17/09/2026 (indiqué par la source)",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:35",
+   "observations": "Seule observation dont la date de collecte est connue (17/09). Départ dans 3 jours.",
+   "bagage_20kg_garanti": true,
+   "point_fort": "Seule observation datée par sa source (17/09).",
+   "remarquable": true,
+   "rang": 5,
+   "dans_top3": false
+  },
+  {
+   "id": "BRU-BJ-1005-1008",
+   "aeroport": "Bruxelles-Zaventem",
+   "code": "BRU",
+   "distance_km": 104,
+   "date_aller": "2026-10-05",
+   "jour_aller": "lundi",
+   "date_retour": "2026-10-08",
+   "jour_retour": "jeudi",
+   "nuits": 3,
+   "compagnie": "Nouvelair",
+   "vols": "BJ397 / BJ396",
+   "type": "DIRECT",
+   "horaire_aller": "variable",
+   "horaire_retour": "variable",
+   "duree_aller": "2 h 35",
+   "duree_retour": "2 h 45",
+   "bagage": "Tarif probablement « Light » (cabine 10 kg seulement). Le bagage en soute exige le tarif « Easy » (25 kg) ou un supplément : montant inconnu.",
+   "bagage_court": "soute NON incluse (supplément inconnu)",
+   "vendeur": "Non identifié",
+   "prix_initial": 153,
+   "prix_bagage": null,
+   "frais": null,
+   "prix_final": null,
+   "devise_origine": "EUR",
+   "prix_origine": 153,
+   "ventilation": "153 € hors bagage ; prix final avec 25 kg inconnu (forcément supérieur).",
+   "source": "Résumé de recherche (liligo.fr / trip.com, pages Nouvelair Bruxelles → Tunis)",
+   "url_source": "https://www.liligo.fr/vols/itineraires/bruxelles/tunis/nouvelair",
+   "collecte_source": "Inconnue",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:45",
+   "observations": "Déjà plus cher que Tunisair avant même d'ajouter le bagage : écarté du classement.",
+   "bagage_20kg_garanti": false,
+   "remarquable": true,
+   "rang": null,
+   "dans_top3": false
+  },
+  {
+   "id": "LIL-BJ-1013-1020",
+   "aeroport": "Lille-Lesquin",
+   "code": "LIL",
+   "distance_km": 8,
+   "date_aller": "2026-10-13",
+   "jour_aller": "mardi",
+   "date_retour": "2026-10-20",
+   "jour_retour": "mardi",
+   "nuits": 7,
+   "compagnie": "Nouvelair",
+   "vols": "BJ757 / BJ756 (?)",
+   "type": "DIRECT",
+   "horaire_aller": "inconnu",
+   "horaire_retour": "inconnu",
+   "duree_aller": "2 h 45",
+   "duree_retour": "2 h 40",
+   "bagage": "Tarif inconnu (probablement « Light », sans soute). Avec 25 kg (« Easy ») : plus cher.",
+   "bagage_court": "soute non garantie",
+   "vendeur": "Non identifié (Skyscanner)",
+   "prix_initial": 297,
+   "prix_bagage": null,
+   "frais": null,
+   "prix_final": null,
+   "devise_origine": "EUR",
+   "prix_origine": 297,
+   "ventilation": "297 € affichés ; bagage non confirmé.",
+   "source": "Skyscanner — page de route Lille → Tunis Carthage",
+   "url_source": "https://www.skyscanner.fr/itineraires/lil/tun/lille-a-tunis-carthage.html",
+   "collecte_source": "Inconnue",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:35",
+   "observations": "Meilleur départ de Lille observé. Vol du mardi non confirmé (le vol régulier constaté est celui du samedi). Au moins +175 € par rapport au n°1.",
+   "categorie": "meilleur_lille",
+   "bagage_20kg_garanti": false,
+   "remarquable": false,
+   "rang": null,
+   "dans_top3": false
+  },
+  {
+   "id": "LIL-BJ-1017-1024",
+   "aeroport": "Lille-Lesquin",
+   "code": "LIL",
+   "distance_km": 8,
+   "date_aller": "2026-10-17",
+   "jour_aller": "samedi",
+   "date_retour": "2026-10-24",
+   "jour_retour": "samedi",
+   "nuits": 7,
+   "compagnie": "Nouvelair",
+   "vols": "BJ739 / BJ738",
+   "type": "DIRECT",
+   "horaire_aller": "21:45 → 23:30",
+   "horaire_retour": "16:15 → ≈19:55",
+   "duree_aller": "2 h 45",
+   "duree_retour": "2 h 40",
+   "bagage": "Inconnu",
+   "bagage_court": "inconnu",
+   "vendeur": "Non identifié",
+   "prix_initial": 615,
+   "prix_bagage": null,
+   "frais": null,
+   "prix_final": null,
+   "devise_origine": "USD",
+   "prix_origine": 711,
+   "ventilation": "711 $ ≈ 615 € (conversion ESTIMÉE).",
+   "source": "Résumé de recherche (pages Nouvelair Lille → Tunis : monde-du-voyage.com / aeroports-voyages.fr)",
+   "url_source": "https://www.monde-du-voyage.com/en/tunisia/flight-tunis/departure-lille/nouvelair/",
+   "collecte_source": "Inconnue",
+   "statut": "ESTIMÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:45",
+   "observations": "Montre que le Lille direct peut être très cher en octobre (dernières semaines de la ligne).",
+   "bagage_20kg_garanti": false,
+   "remarquable": false,
+   "rang": null,
+   "dans_top3": false
+  },
+  {
+   "id": "LIL-X-1017-1030",
+   "aeroport": "Lille-Lesquin",
+   "code": "LIL",
+   "distance_km": 8,
+   "date_aller": "2026-10-17",
+   "jour_aller": "samedi",
+   "date_retour": "2026-10-30",
+   "jour_retour": "vendredi",
+   "nuits": 13,
+   "compagnie": "Inconnue",
+   "vols": "—",
+   "type": "1 CORRESPONDANCE",
+   "horaire_aller": "inconnu",
+   "horaire_retour": "inconnu",
+   "duree_aller": "inconnue",
+   "duree_retour": "inconnue",
+   "bagage": "Inconnu",
+   "bagage_court": "inconnu",
+   "vendeur": "Non identifié (KAYAK)",
+   "prix_initial": 268,
+   "prix_bagage": null,
+   "frais": null,
+   "prix_final": null,
+   "devise_origine": "EUR",
+   "prix_origine": 268,
+   "ventilation": "268 € affichés, compagnie et bagage inconnus.",
+   "source": "KAYAK.fr — page Lille → Tunis",
+   "url_source": "https://www.kayak.fr/vols/Lille-Lesquin-LIL/Tunis-Aeroport-Intl-de-Tunis-Carthage-TUN",
+   "collecte_source": "Inconnue",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:35",
+   "observations": "Correspondance depuis Lille : non compétitive.",
+   "bagage_20kg_garanti": false,
+   "remarquable": false,
+   "rang": null,
+   "dans_top3": false
+  },
+  {
+   "id": "ORY-TO-1009-1012",
+   "aeroport": "Paris-Orly (hors rayon)",
+   "code": "ORY",
+   "distance_km": 218,
+   "date_aller": "2026-10-09",
+   "jour_aller": "vendredi",
+   "date_retour": "2026-10-12",
+   "jour_retour": "lundi",
+   "nuits": 3,
+   "compagnie": "Transavia France",
+   "vols": "—",
+   "type": "DIRECT",
+   "horaire_aller": "inconnu",
+   "horaire_retour": "inconnu",
+   "duree_aller": "2 h 30",
+   "duree_retour": "2 h 30",
+   "bagage": "Tarif de base sans soute ; 20 kg ≈ 40 € par trajet (grille publique 2026)",
+   "bagage_court": "20 kg ajoutés (ESTIMÉ)",
+   "vendeur": "Non identifié",
+   "prix_initial": 135,
+   "prix_bagage": 80,
+   "frais": null,
+   "prix_final": 215,
+   "devise_origine": "EUR",
+   "prix_origine": 135,
+   "ventilation": "135 € (billet) + ≈80 € (2 × 20 kg) = ≈215 € (ESTIMÉ).",
+   "source": "Résumé de recherche (momondo.fr / kayak.fr, Paris → Tunis Transavia) ; tarif bagage : grille Transavia 2026 citée par la presse",
+   "url_source": "https://www.momondo.fr/vols/aeroport-de-paris-orly-ory/tunis-gouvernorat-de-tunis",
+   "collecte_source": "Inconnue",
+   "statut": "ESTIMÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:45",
+   "observations": "Hors rayon (218 km). Pas d'économie : environ +93 € par rapport au n°1, sans compter le trajet jusqu'à Orly.",
+   "categorie": "hors_rayon",
+   "bagage_20kg_garanti": true,
+   "remarquable": false,
+   "rang": null,
+   "dans_top3": false
+  },
+  {
+   "id": "ORY-TO-1005-1009",
+   "aeroport": "Paris-Orly (hors rayon)",
+   "code": "ORY",
+   "distance_km": 218,
+   "date_aller": "2026-10-05",
+   "jour_aller": "lundi",
+   "date_retour": "2026-10-09",
+   "jour_retour": "vendredi",
+   "nuits": 4,
+   "compagnie": "Transavia France",
+   "vols": "—",
+   "type": "DIRECT",
+   "horaire_aller": "inconnu",
+   "horaire_retour": "inconnu",
+   "duree_aller": "2 h 30",
+   "duree_retour": "2 h 30",
+   "bagage": "Tarif de base sans soute ; 20 kg ≈ 40 € par trajet",
+   "bagage_court": "20 kg ajoutés (ESTIMÉ)",
+   "vendeur": "Non identifié",
+   "prix_initial": 130,
+   "prix_bagage": 80,
+   "frais": null,
+   "prix_final": 210,
+   "devise_origine": "EUR",
+   "prix_origine": 130,
+   "ventilation": "130 € + ≈80 € = ≈210 € (ESTIMÉ).",
+   "source": "Résumé de recherche (momondo.fr / kayak.fr)",
+   "url_source": "https://www.kayak.fr/vols/Transavia-France-Paris-PAR/Tunis-Aeroport-Intl-de-Tunis-Carthage-TUN.b.TO.ksp",
+   "collecte_source": "Inconnue",
+   "statut": "ESTIMÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:45",
+   "observations": "Hors rayon. Non compétitif.",
+   "categorie": "hors_rayon",
+   "bagage_20kg_garanti": true,
+   "remarquable": false,
+   "rang": null,
+   "dans_top3": false
+  },
+  {
+   "id": "BRU-TU-1030-1031",
+   "aeroport": "Bruxelles-Zaventem",
+   "code": "BRU",
+   "distance_km": 104,
+   "date_aller": "2026-10-30",
+   "jour_aller": "vendredi",
+   "date_retour": "2026-10-31",
+   "jour_retour": "samedi",
+   "nuits": 1,
+   "compagnie": "Tunisair",
+   "vols": "TU955 / TU954",
+   "type": "DIRECT",
+   "horaire_aller": "12:25 → 14:00",
+   "horaire_retour": "inconnu (heure d'hiver)",
+   "duree_aller": "2 h 35",
+   "duree_retour": "2 h 35",
+   "bagage": "1 bagage en soute de 23 kg inclus",
+   "bagage_court": "23 kg en soute inclus",
+   "vendeur": "Non identifié",
+   "prix_initial": 246,
+   "prix_bagage": 0,
+   "frais": null,
+   "prix_final": 246,
+   "devise_origine": "USD+EUR",
+   "prix_origine": null,
+   "ventilation": "Aller simple 30/10 : 88 $ ≈ 76 € (Skyscanner) + retour 31/10 : 170 € (prix affiché pour Tunisair) = ≈246 € (ESTIMÉ, deux allers simples).",
+   "source": "Skyscanner (aller simple) + résumé de recherche (retour)",
+   "url_source": "https://www.skyscanner.com/routes/brus/tun/brussels-to-tunis-carthage.html",
+   "collecte_source": "Inconnue",
+   "statut": "ESTIMÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:45",
+   "observations": "Le retour du 31/10 est cher : fin octobre, mieux vaut rentrer avant.",
+   "bagage_20kg_garanti": true,
+   "remarquable": true,
+   "rang": null,
+   "dans_top3": false
+  },
+  {
+   "id": "BRU-BJ-1016-1018",
+   "aeroport": "Bruxelles-Zaventem",
+   "code": "BRU",
+   "distance_km": 104,
+   "date_aller": "2026-10-16",
+   "jour_aller": "vendredi",
+   "date_retour": "2026-10-18",
+   "jour_retour": "dimanche",
+   "nuits": 2,
+   "compagnie": "Nouvelair (avec escale)",
+   "vols": "—",
+   "type": "1 CORRESPONDANCE",
+   "horaire_aller": "inconnu",
+   "horaire_retour": "inconnu",
+   "duree_aller": "inconnue",
+   "duree_retour": "inconnue",
+   "bagage": "Inconnu",
+   "bagage_court": "inconnu",
+   "vendeur": "Non identifié",
+   "prix_initial": 239,
+   "prix_bagage": null,
+   "frais": null,
+   "prix_final": null,
+   "devise_origine": "EUR",
+   "prix_origine": 239,
+   "ventilation": "239 € affichés.",
+   "source": "Résumé de recherche (pages Nouvelair Bruxelles → Tunis)",
+   "url_source": "https://www.monde-du-voyage.com/tunisie/vol-tunis/depart-bruxelles/nouvelair/",
+   "collecte_source": "Inconnue",
+   "statut": "OBSERVÉ",
+   "badge": "À REVÉRIFIER",
+   "observe_le": "2026-10-04 ≈12:45",
+   "observations": "Non compétitif.",
+   "bagage_20kg_garanti": false,
+   "remarquable": false,
+   "rang": null,
+   "dans_top3": false
+  }
+ ],
+ "references_sans_dates": [
+  {
+   "route": "BRU → TUN",
+   "compagnie": "Lufthansa (1 correspondance, ≈4 h 30)",
+   "prix": "à partir de 144 €",
+   "bagage": "cabine 8 kg seulement",
+   "statut": "OBSERVÉ",
+   "note": "Avec un bagage en soute, au-delà de 200 € (ESTIMÉ). Non compétitif.",
+   "url": "https://www.lufthansa.com/lhg/be/fr/o-d/cy-cy/bruxelles-tunis"
+  },
+  {
+   "route": "BRU → TUN",
+   "compagnie": "ITA Airways (1 correspondance via Rome)",
+   "prix": "à partir de 207 €",
+   "bagage": "soute en option (23 kg)",
+   "statut": "OBSERVÉ",
+   "note": "Non compétitif.",
+   "url": "https://www.ita-airways.com/lhg/be/fr/o-d/cy-cy/bruxelles-tunis"
+  },
+  {
+   "route": "BRU → TUN",
+   "compagnie": "Swiss / Brussels Airlines (correspondances)",
+   "prix": "à partir de 191 €",
+   "bagage": "inconnu",
+   "statut": "OBSERVÉ",
+   "note": "Non compétitif.",
+   "url": "https://www.brusselsairlines.com/lhg/be/fr/o-d/cy-cy/bruxelles-tunis"
+  },
+  {
+   "route": "BRU → TUN",
+   "compagnie": "Turkish Airlines (via Istanbul)",
+   "prix": "à partir de 399 €",
+   "bagage": "inclus",
+   "statut": "OBSERVÉ",
+   "note": "Non compétitif.",
+   "url": "https://www.fr.momondo.be/vols/bruxelles/tunis-gouvernorat-de-tunis"
+  },
+  {
+   "route": "BRU → TUN",
+   "compagnie": "Tunisair (Google Flights)",
+   "prix": "direct à partir de 148 € aller-retour",
+   "bagage": "23 kg inclus",
+   "statut": "OBSERVÉ",
+   "note": "Dates non précisées.",
+   "url": "https://www.google.com/travel/flights/flights-from-brussels-to-tunis.html?gl=BE&hl=fr"
+  },
+  {
+   "route": "BRU → TUN",
+   "compagnie": "Nouvelair (Google Flights)",
+   "prix": "à partir de 138 € aller-retour",
+   "bagage": "probablement sans soute",
+   "statut": "OBSERVÉ",
+   "note": "Dates non précisées (138 € vu pour le 2-4/10, hors période).",
+   "url": "https://www.google.com/travel/flights/flights-from-brussels-to-tunis.html?gl=BE&hl=fr"
+  },
+  {
+   "route": "LIL → TUN",
+   "compagnie": "TGV + Air France (AccesRail + Air France, via Paris-CDG)",
+   "prix": "272 € aller-retour (Google Flights)",
+   "bagage": "inconnu",
+   "statut": "OBSERVÉ",
+   "note": "Dates non précisées. Non compétitif.",
+   "url": "https://www.google.com/travel/flights/flights-from-lille-to-tunis.html?gl=FR&hl=fr"
+  },
+  {
+   "route": "CRL → TUN",
+   "compagnie": "Comparateurs (compagnie non précisée)",
+   "prix": "dès 118 € (9/10), 120 € (10/10), 125 € (24/10)",
+   "bagage": "inconnu",
+   "statut": "OBSERVÉ",
+   "note": "Probablement des allers simples, avec escale ou depuis Bruxelles-Zaventem. Non exploitable sans vérification.",
+   "url": "https://www.fr.momondo.be/vols/aeroport-de-charleroi-bruxelles-sud-crl/tunis-gouvernorat-de-tunis"
+  },
+  {
+   "route": "PAR → TUN",
+   "compagnie": "Tunisair",
+   "prix": "à partir de 596 TND (≈176 €)",
+   "bagage": "23 kg inclus",
+   "statut": "ESTIMÉ",
+   "note": "Conversion approximative. Hors rayon et sans économie.",
+   "url": "https://www.tunisair.com/en"
+  }
+ ],
+ "couverture": {
+  "cartographie": "≈100 % : tous les aéroports commerciaux à 150 km ou moins ont été examinés (11), plus Liège et Paris hors rayon.",
+  "compagnies": "Tunisair, Nouvelair, TUI fly (Charleroi), Transavia (Paris, hors rayon) ; correspondances Lufthansa, ITA, Swiss / Brussels Airlines, Turkish, Air France (TGV AIR), Royal Air Maroc.",
+  "dates": "Partielle. Bruxelles–Tunis (Tunisair, quotidien) : 6 combinaisons datées observées sur 378 possibles ; la vue calendrier des comparateurs n'était pas accessible. Lille : 3 combinaisons observées.",
+  "verification": "0 % : aucun parcours de réservation n'a pu être ouvert (accès réseau bloqué). Aucune seconde vérification possible.",
+  "zone_restante": "Toutes les dates Bruxelles–Tunis non affichées par les comparateurs (notamment du 13 au 22/10 et du 27 au 31/10), les prix actuels (au 04/10) des 3 premières offres, les frais d'agence, et le tarif Nouvelair « Easy » avec 25 kg."
+ },
+ "verification_a_faire": [
+  "Ouvrir tunisair.com : aller-retour BRU → TUN, 1 adulte, dates de l'offre, classe Économie.",
+  "Contrôler sur le récapitulatif que le bagage en soute de 23 kg est bien inclus.",
+  "Comparer avec le lien Google Flights (filtre « sans escale », 1 bagage en soute).",
+  "Si une agence est moins chère de quelques euros seulement, préférer tunisair.com.",
+  "S'arrêter avant le paiement et noter le prix et l'heure."
+ ]
+}</script>
+<script>
+(function(){
+  // Avant impression / export PDF : ouvrir les sections repliées, puis rétablir l'état.
+  var ouvertes = [];
+  window.addEventListener('beforeprint', function(){
+    ouvertes = [];
+    document.querySelectorAll('details.details-section').forEach(function(d){
+      if(!d.open){ d.open = true; ouvertes.push(d); }
+    });
+  });
+  window.addEventListener('afterprint', function(){
+    ouvertes.forEach(function(d){ d.open = false; });
+  });
+})();
+</script>
+</body>
+</html>
