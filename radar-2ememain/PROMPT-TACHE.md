@@ -29,7 +29,7 @@ SOURCE B, secours : la recherche du site 2ememain, triée par « plus récentes 
 À CHAQUE EXÉCUTION
 1. Lis le bloc PROFILS à la fin. Ignore les profils « actif: non ».
 2. Récupère les annonces candidates (voir SOURCES). Rattache chacune au profil correspondant. Vérifie TOI-MÊME chaque critère sur chaque annonce (prix, zone, mots exclus…), même si 2ememain a déjà filtré.
-3. Une donnée absente de l'annonce est « inconnue », jamais « non ». Une annonce avec des données inconnues reste éligible, mais le signaler.
+3. Une donnée absente de l'annonce est « inconnue », jamais « non ». Une annonce avec des données inconnues reste éligible ; signale-le.
 4. Garde seulement les annonces :
    - nouvelles pour cette tâche (voir DÉDUPLICATION),
    - dont le prix affiché est dans la fourchette du profil, bornes incluses. Sans prix, « prix à discuter », « échange », « gratuit » ou « enchères » : exclues sauf si le profil les accepte,
