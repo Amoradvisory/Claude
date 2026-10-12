@@ -32,6 +32,7 @@ Rien n'a encore tourné en conditions réelles. Nouveauté : j'ai maintenant acc
 | [PROMPT-TACHE.md](PROMPT-TACHE.md) | Le texte de la tâche, à copier-coller, avec un profil auto et un profil générique | C |
 | [MANUEL.md](MANUEL.md) | Changer les filtres, mettre en pause, lire une alerte, maintenance | E, H |
 | [RAPPORT-TESTS.md](RAPPORT-TESTS.md) | Les 17 tests d'acceptation et leur statut réel | F |
+| [INSTRUCTION-CODEX.md](INSTRUCTION-CODEX.md) | Instruction autonome pour que Codex fasse la mise en service depuis ton PC (Opera), sans identifiants ni automatisation Codex | B |
 
 - **Livrable D (panneau)** : volontairement pas construit.
 - **Livrable I (Mémoire Multi-Agents)** : j'ai lu la mission `url-2emain` (révision 2), mais je n'y écris pas. Je n'ai pas accès à sa passerelle, et ses fichiers ne doivent jamais être modifiés directement. Un texte de relais est prêt à la fin de [DIAGNOSTIC.md](DIAGNOSTIC.md), pour que ChatGPT l'enregistre avec sa compétence « memoire-multi-agents ».
