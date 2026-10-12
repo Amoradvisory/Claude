@@ -1,43 +1,67 @@
-# Porte de faisabilité : test guidé à faire par toi
+# Porte de faisabilité : test guidé (v2)
 
-À faire **avant toute autre construction**. Compte environ 20 minutes actives, puis 2 à 3 heures d'observation passive.
-Je ne peux pas le faire à ta place : il se passe dans ton ChatGPT et sur ton téléphone.
+À faire **avant toute autre construction**. Compte environ 15 minutes actives, puis 2 à 3 heures d'observation passive.
 
-Pour chaque étape, note le résultat dans la fiche en bas de page. Des captures d'écran sont bienvenues, une fois masqués ton e-mail et toute donnée de vendeur.
+Pour chaque étape, le tableau indique qui fait l'action et qui vérifie. **« Claude »** = je contrôle moi-même dans Gmail enseignant.be@gmail.com, quand tu me dis « vérifie ».
+
+| Étape | Action | Qui agit | Qui vérifie |
+|---|---|---|---|
+| E0 | Prérequis : offre ChatGPT, notifications, Gmail relié | Toi | Toi |
+| E1 | Recherche sauvegardée 2ememain avec alerte e-mail | Toi (ou ChatGPT via ton téléphone) | **Claude**, dans Gmail |
+| E1-bis | Accès web direct de ChatGPT (voie de secours) | Toi | Toi |
+| E2 | Notification test d'une tâche ChatGPT | Toi | Toi (téléphone) + **Claude** (e-mail) |
+| E3 | Tâche horaire réelle, 3 exécutions | Toi | Toi + **Claude** (e-mails) |
+| E4 | Modification des critères | Toi | Toi |
 
 ---
 
 ## E0. Prérequis (3 min)
 
-1. Dans ChatGPT, va dans Paramètres puis Compte, et note **ton offre** (Free, Go, Plus, Pro…). Sans offre payante, la cadence horaire n'est probablement pas disponible : **arrête-toi là et dis-le moi**. Je ne prends aucun abonnement à ta place.
-2. Mets à jour l'app ChatGPT sur Android.
-3. Dans les paramètres Android, va dans Applications, ChatGPT, Notifications : autorise-les et active **le son** pour la catégorie liée aux tâches, si elle existe.
-4. Dans ChatGPT, va dans Paramètres puis Notifications et coche **Push** et **E-mail** pour les tâches.
+1. **Offre ChatGPT : Plus** (environ 20 €/mois), confirmée par toi le 12/10, et payée depuis un autre compte. Vérifie seulement que tu crées la tâche **dans le compte ChatGPT qui a Plus**. Les e-mails de notification ChatGPT partent vers l'adresse de **ce** compte. Si ce n'est pas enseignant.be@gmail.com, je ne pourrai pas les lire : dis-moi alors l'adresse, ou crée un transfert Gmail vers enseignant.be.
+2. Android, Paramètres, Applications, ChatGPT, Notifications : autorise-les et active **le son**.
+3. ChatGPT, Paramètres, Notifications : coche **Push** et **E-mail** pour les tâches.
+4. ChatGPT, Paramètres, Applications (ou Connecteurs) : vérifie que **Gmail** est connecté sur **enseignant.be@gmail.com**. Une seule boîte Gmail est possible.
 
-## E1. ChatGPT peut-il voir des annonces fraîches ? (5 min, test décisif)
+## E1. Les alertes officielles de 2ememain (5 min, puis attente)
 
-Dans une **conversation normale** (pas encore une tâche), colle ceci :
+1. Dans l'appli 2ememain : vérifie que **l'e-mail du compte est enseignant.be@gmail.com**. Sinon, deux solutions : changer cet e-mail dans le compte 2ememain, ou créer dans l'autre boîte Gmail un transfert des e-mails 2ememain vers enseignant.be.
+2. Lance la recherche : catégorie **Autos**, prix **2 000 à 4 000 €**, toute la Belgique, tri **plus récentes**.
+3. **Enregistre la recherche** (« Sauvegarder la recherche » ou icône cloche) et active les **alertes par e-mail**. Active aussi le push de l'appli 2ememain si tu veux être prévenu tout de suite.
+4. Note le nom exact de l'option et les fréquences proposées (immédiate, quotidienne…). Ces intitulés sont **non vérifiés** de mon côté.
+5. Attends 1 à 2 heures (les voitures à ce prix se publient en continu), puis dis-moi **« vérifie E1 »**.
+
+Ce que je contrôlerai alors dans Gmail :
+- l'expéditeur ;
+- le délai entre la publication et l'e-mail, si l'heure de publication est visible ;
+- la présence d'un **lien direct par annonce** ;
+- prix, lieu, titre ;
+- la fréquence : un e-mail par annonce ou un groupe.
+
+| Observation | Verdict voie A |
+|---|---|
+| E-mails reçus avec liens directs, en moins de 1 h environ | **VERT** |
+| E-mails seulement quotidiens, ou sans lien direct | **ORANGE** : utilisable, mais en retard ; on teste la voie de secours |
+| Aucun e-mail possible (option absente) | **ROUGE pour A** : on teste la voie de secours (E1-bis) |
+
+## E1-bis. Accès web direct de ChatGPT (voie de secours, 5 min)
+
+Dans une **conversation normale**, colle :
 
 ```text
 TEST D'ACCÈS — ne pas inventer.
 Ouvre 2ememain.be et donne-moi les 5 annonces les plus récentes de la catégorie Autos dont le prix affiché est entre 2000 et 4000 € (bornes incluses), partout en Belgique.
-Pour chacune : titre exact, prix, commune, URL directe de l'annonce, date/heure de publication SI elle est affichée.
-Ensuite dis-moi précisément : quelles pages tu as réussi à ouvrir, si tu as pu trier par date, si tu as été bloqué (et comment), et si tes résultats viennent d'une navigation directe ou d'un index de recherche.
+Pour chacune : titre exact, prix, commune, URL directe, date/heure de publication SI elle est affichée.
+Dis-moi précisément quelles pages tu as pu ouvrir, si tu as pu trier par date, si tu as été bloqué, et si tes résultats viennent d'une navigation directe ou d'un index de recherche.
 ```
 
-**Vérifie toi-même**, dans l'app ou sur le site 2ememain :
-- Ouvre les 5 liens. Pointent-ils vers une vraie annonce, au bon prix et toujours en ligne ?
-- Ouvre 2ememain toi-même : Autos, prix 2 000 à 4 000 €, tri « plus récentes ». Les annonces de ChatGPT figurent-elles parmi les ~30 premières ? Ont-elles moins de 24 h ?
+Ouvre les 5 liens toi-même : sont-ils réels, au bon prix, publiés depuis moins de 24 h ?
+- **VERT** : au moins 4 valides et au moins 3 de moins de 24 h.
+- **ORANGE** : liens valides mais anciens.
+- **ROUGE** : liens inventés ou morts, ou blocage.
 
-| Observation | Verdict |
-|---|---|
-| ≥ 4 liens valides, au bon prix, et ≥ 3 annonces de moins de 24 h | **VERT** sur l'accès |
-| Liens valides mais annonces vieilles de plusieurs jours (résultats d'index, pas de navigation) | **ORANGE** : le radar ne détectera pas « vite » |
-| Liens inventés ou morts, blocage, ou « je ne peux pas accéder » | **ROUGE** : on s'arrête et on décide ensemble |
+## E2. Notification test (5 min + 10 min d'attente)
 
-## E2. Notification et e-mail réels (5 min + 10 min d'attente)
-
-Seulement si E1 n'est pas ROUGE. Dans l'app Android, écris :
+Dans l'app ChatGPT Android :
 
 ```text
 Crée une tâche unique qui s'exécute dans 10 minutes, intitulée "TEST Radar notification", avec ces instructions :
@@ -45,51 +69,43 @@ Crée une tâche unique qui s'exécute dans 10 minutes, intitulée "TEST Radar n
 Ceci est un test de notification du Radar 2ememain, aucune annonce réelle."
 ```
 
-Puis verrouille le téléphone et attends. Note ensuite :
-- La notification push est-elle **apparue** ? À quelle heure ?
-- A-t-elle **sonné** ou vibré ?
-- **Texte exact visible** dans l'aperçu : le titre de la tâche ? la 1re ligne ? tronqué où ?
-- En tapant dessus, arrives-tu sur le bon résultat ?
-- E-mail : est-il arrivé ? **Objet exact** ? Expéditeur ? La 1re ligne est-elle visible dans l'aperçu Gmail ?
+Verrouille le téléphone et attends. Note :
+- si la notification est **apparue**, et à quelle heure ;
+- si elle a **sonné** ou vibré ;
+- le **texte visible** dans l'aperçu ;
+- si un clic t'amène sur le bon résultat.
+
+Puis dis-moi **« vérifie E2 »** : je relève dans Gmail l'**objet exact** de l'e-mail ChatGPT, son expéditeur, son heure et ce que montre son aperçu.
 
 ## E3. La tâche horaire réelle (5 min + 2 à 3 h passives)
 
-1. Crée une tâche **toutes les heures** intitulée « Radar 2ememain Belgique », avec le texte complet de [PROMPT-TACHE.md](PROMPT-TACHE.md).
-2. Vérifie dans la liste des tâches (Paramètres, Tâches, ou l'icône dédiée) qu'elle apparaît avec la cadence horaire. Note l'heure de la prochaine exécution.
-3. Laisse tourner **3 exécutions**. Pour chacune, note :
-   - l'heure réelle d'exécution ;
-   - le résultat : annonces, « RAS » ou « ACCÈS IMPOSSIBLE » ;
-   - si un « RAS » a quand même déclenché une notification (c'est le test du bruit) ;
-   - si une annonce déjà signalée revient (test de déduplication), et ce que dit la ligne « Méthode » ;
-   - pour 1 annonce au moins : lien valide ? comparables avec URLs qui s'ouvrent ? confiance cohérente ?
+1. Crée une tâche **toutes les heures** intitulée « Radar 2ememain Belgique », avec le texte de [PROMPT-TACHE.md](PROMPT-TACHE.md).
+2. Vérifie qu'elle apparaît dans la liste des tâches avec la cadence horaire.
+3. Laisse passer **3 exécutions**, puis dis-moi **« vérifie E3 »**. Je comparerai, dans Gmail, les alertes 2ememain reçues et les e-mails de la tâche ChatGPT : chaque alerte a-t-elle été traitée une fois, et une seule ?
+4. De ton côté, note :
+   - si un « RAS » a quand même déclenché une notification ;
+   - la source indiquée dans la ligne « Méthode » : A, ou B suite à une erreur Gmail ;
+   - pour une annonce au moins, si les liens des comparables s'ouvrent.
 
 ## E4. Modification des critères (3 min)
 
-Modifie la tâche : change `prix: 2000–4000` en `prix: 1500–5000` dans le bloc PROFILS. Note **comment** tu as dû faire (bouton Modifier de la tâche, ou message dans la conversation de la tâche) et si l'exécution suivante affiche bien la nouvelle fourchette dans la ligne « Méthode ».
+- Dans 2ememain, modifie la recherche sauvegardée : prix **1 500 à 5 000 €**.
+- Dans la tâche, mets à jour la ligne `prix:` du profil P1.
+- Note comment tu as dû faire, et si l'exécution suivante en tient compte.
 
 ---
 
 ## Fiche à remplir et à me renvoyer
 
 ```text
-Date du test :
-Offre ChatGPT :
-Modèle Android / version de l'app ChatGPT :
+Date :
+Offre ChatGPT (compte enseignant.be) :
+Gmail connecté dans ChatGPT : oui/non, adresse :
 
-E1 accès : liens valides __/5 ; annonces < 24 h __/5 ; tri par date possible : oui/non ; blocage observé :
-E1 verdict : VERT / ORANGE / ROUGE
-
+E1 : option d'alerte trouvée : "..." ; fréquences proposées : ... ; e-mail du compte 2ememain = enseignant.be oui/non
+E1-bis : liens valides __/5 ; < 24 h __/5 ; blocage : ...
 E2 push : apparue oui/non à __h__ ; son oui/non ; texte visible : "..." ; clic → bon résultat oui/non
-E2 e-mail : reçu oui/non ; objet exact : "..." ; 1re ligne visible dans l'aperçu oui/non
-
-E3 exécution 1 : heure __ ; résultat __ ; notif sur RAS oui/non
-E3 exécution 2 : heure __ ; résultat __ ; doublon oui/non ; déduplication déclarée sûre/incertaine
-E3 exécution 3 : heure __ ; résultat __
-E3 qualité d'une analyse : liens comparables valides __/__ ; verdict justifié oui/non
-
-E4 modification : méthode utilisée : ... ; prise en compte oui/non
-
+E3 : notif sur RAS oui/non ; source utilisée : A/B ; erreur Gmail : oui/non ; comparables valides __/__
+E4 : méthode : ... ; pris en compte oui/non
 Remarques :
 ```
-
-Une fois la fiche reçue, je mets à jour le [rapport de tests](RAPPORT-TESTS.md), j'ajuste le prompt (v2) et je te donne le verdict VERT / ORANGE / ROUGE avec la suite.

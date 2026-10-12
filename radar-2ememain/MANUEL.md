@@ -5,6 +5,12 @@ Les noms exacts des menus ChatGPT peuvent changer. Si un intitulé diffère, che
 
 ## Changer un filtre (budget, marque, région)
 
+Les critères vivent à **deux endroits**. Change les deux pour garder la cohérence :
+- **Dans l'appli 2ememain**, ta recherche sauvegardée : c'est le **filtre** qui décide quelles annonces arrivent par e-mail. Ouvre « Recherches sauvegardées », modifie la recherche (prix, catégorie, région, marque) et garde l'alerte e-mail activée.
+- **Dans la tâche ChatGPT**, le bloc PROFILS : c'est l'**évaluation** (mots exclus, kilométrage, nombre d'annonces signalées).
+
+Pour la tâche ChatGPT :
+
 1. Ouvre la tâche : liste des tâches, puis « Radar 2ememain Belgique », puis **Modifier**.
 2. Dans le texte, va au bloc `===== PROFILS =====`. Ne touche pas au reste.
 3. Change uniquement la ligne concernée, par exemple :
@@ -46,10 +52,12 @@ Points d'attention :
 - Pour aller plus loin, réponds dans la conversation de la tâche, par exemple « Analyse en détail l'annonce 2 et cherche 5 comparables de plus ».
 - **RAS** : rien de nouveau. **ACCÈS IMPOSSIBLE** : le radar n'a pas pu regarder. Ce n'est **pas** « pas de bonne affaire ».
 
-## Maintenance (5 cas)
+## Maintenance
 
 | Symptôme | Cause probable | Action |
 |---|---|---|
+| Ligne Méthode « source = B » de façon répétée | Le connecteur Gmail ne marche pas en exécution automatique | Reconnecter Gmail dans ChatGPT ; si ça persiste, la voie B (site) prend le relais, avec ses limites |
+| Plus aucune alerte 2ememain dans Gmail | Recherche sauvegardée supprimée, alerte e-mail désactivée, e-mails en spam | Vérifier la recherche dans l'appli 2ememain et le dossier Spam |
 | Plus aucune notification | Tâche en pause, notifications Android coupées, session déconnectée | Vérifier l'état de la tâche, puis les notifications Android, puis la connexion à l'app |
 | « ACCÈS IMPOSSIBLE » plusieurs heures de suite | 2ememain bloque ou a changé | Ne rien contourner. Mettre en pause et me prévenir avec le texte exact |
 | Toujours « DONNÉES INSUFFISANTES » | Critères trop rares, ou comparables inaccessibles | Élargir la zone ou l'année ; accepter que certains biens ne soient pas estimables |
