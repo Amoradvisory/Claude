@@ -1,109 +1,77 @@
-# Paquet `run_desktop` — à appliquer sur la box de Grok
+# Paquet `run_desktop` — installation sur la box de Grok (redémarrage inclus)
 
-Préparé par une session Claude Code cloud **qui n'a aucun accès à la box**
-(`/home/box` absent, ni Tailscale ni SSH ni X11, `*.ts.net` bloqué par le réseau).
-Le vrai `server.mjs`/`sandbox.mjs` n'a donc pas pu être lu : les points
-d'insertion ci-dessous sont décrits sans numéros de ligne, à confirmer à
-l'application par l'agent qui a la main sur la box (ChatGPT/Codex via Remote
-Desktop Commander, ou le terminal Grok).
+Préparé par une session Claude Code cloud **sans accès à la box** (`/home/box` absent, ni
+Tailscale ni SSH ni X11, `*.ts.net` bloqué). Le vrai `server.mjs` n'a donc jamais été lu :
+`apply.sh` le branche par reconnaissance de motifs et **n'écrit rien s'il ne le reconnaît pas**.
 
-## Contenu
-
-| Fichier | Rôle |
-|---|---|
-| `run_desktop.mjs` | L'outil : exécute hors sandbox avec `DISPLAY=:3` + DBUS de la session :3, gardes STOP + journal masqué. Sans dépendance. |
-| `verifier-desktop.sh` | Script de preuve à lancer sur la box. Écrit la preuve dans `/workspace/` et sa copie. |
-| `DESKTOP-CHATGPT.md` | Doc (fonctionnement, risque, OFF, rollback) → à copier dans `/workspace/pont-sauvegardes-*/`. |
-| `README.md` | Ce fichier : application, câblage, tests, rollback. |
-
-## 0. Audit + sauvegarde (avant toute modification)
+## En une commande (sur la box, utilisateur `box`)
 
 ```bash
-cd /home/box/grok-free-poc/full-bridge
-mkdir -p ~/backups && chmod 700 ~/backups
-tar --exclude=node_modules -czf ~/backups/full-bridge-$(date +%F-%H%M).tgz \
-  -C /home/box/grok-free-poc full-bridge
-# relever la commande de démarrage exacte du pont et ses variables d'env :
-ps -eo pid,args | grep -E '[s]erver\.mjs'
+git clone --depth 1 -b claude/eloquent-hamilton-wjsc5v https://github.com/Amoradvisory/Claude ~/claude-desktop-pkg
+cd ~/claude-desktop-pkg/grok-desktop-mcp
+bash apply.sh --dry-run     # 1) montre le diff de server.mjs, ne modifie rien
+bash apply.sh               # 2) applique, redémarre le pont, vérifie, produit les preuves
 ```
+(Si `git` est absent ou GitHub injoignable, copier le dossier `grok-desktop-mcp/` à la main.)
 
-## 1. Déposer le paquet
+## Ce que fait `apply.sh`
+
+1. **Sauvegarde** `full-bridge` en `~/backups/full-bridge-AAAAMMJJ-HHMM.tgz` (0600) et garde
+   `server.mjs.before-run_desktop`.
+2. Copie le module dans `full-bridge/desktop/`, lance les **tests des gardes** et vérifie `DISPLAY=:3`.
+3. **Patche `server.mjs`** (`patch-server.mjs`) : ajoute `run_desktop` à côté de `run_shell`, contrôle la
+   syntaxe sur une copie avant d'écrire. Motif inconnu → code 3, **fichier intact**, câblage manuel
+   (voir plus bas).
+4. **Redémarre le pont à l'identique** : même commande, même répertoire, même environnement, lus dans
+   `/proc` (copie 0600 dans un dossier 0700, supprimée à la sortie, jamais affichée). Unité
+   `systemd --user` détectée → `systemctl --user restart`. Superviseur qui relance seul → pas de doublon.
+5. **Contrôle de santé** : port 17778 à l'écoute et passerelle OAuth 17779 qui répond **401** sans jeton.
+6. **Retour arrière automatique** si la santé échoue : `server.mjs` d'origine restauré, pont relancé
+   (depuis l'instantané si le pont patché a planté). L'état d'avant est rétabli, le script sort en erreur.
+7. Dépose `DESKTOP-CHATGPT.md` dans `pont-sauvegardes-*` et lance `verifier-desktop.sh`
+   (`/workspace/preuve-desktop-chatGPT-AAAAMMJJ-HHMM.txt` + copie).
+
+Options : `--dry-run`, `--no-restart` (patche sans relancer), `--rollback`.
+Variables : `BRIDGE`, `DESKTOP_WORKSPACE`, `BRIDGE_PORT` (17778), `OAUTH_PORT` (17779), `BACKUPS`.
+Aucun port ouvert, Funnel/Tailscale/OAuth/jetons/6443/Chrome persistant non touchés.
+
+## Ce qui a été testé ici (et ce qui ne l'a pas été)
+
+Testé dans le conteneur, sur un **faux pont** (HTTP sur ports de test, env avec un faux secret) :
+application + redémarrage réel + `run_desktop` appelable (`bureau=:3`) + `run_shell` intact ;
+fichier STOP effectif ; journal masqué ; **aucune fuite** du secret d'environnement ;
+retour arrière automatique quand le pont patché plante ; `--rollback` manuel ; 11 tests unitaires
+(`node --test patch-server.test.mjs run_desktop.test.mjs`).
+
+**Non testé** (impossible hors box) : le vrai `server.mjs`, le vrai X11 `:3` (xdotool, xfconf-query,
+import), le Funnel 443 et ChatGPT. Les preuves bureau ne peuvent naître que sur la box.
+
+## Câblage manuel (si `apply.sh` répond « motif non reconnu »)
+
+Dans `server.mjs` : `import { runDesktopTool, handleRunDesktop } from './desktop/run_desktop.mjs';`
+- liste d'outils : ajouter `runDesktopTool` ;
+- dispatch : `case 'run_desktop': return handleRunDesktop(<arguments de l'appel>);`
+- SDK `McpServer` : `server.tool('run_desktop', desc, { command: z.string() }, async (a) => handleRunDesktop(a));`
+  (le schéma est **zod**, pas le JSON Schema de `runDesktopTool`).
+Puis `node --check server.mjs` et redémarrer avec la commande d'origine.
+
+## Test ChatGPT (la preuve « comme ChatGPT »)
+
+Connecteur « Grok Linux MCP - complet » activé, dans une conversation :
+
+> Avec l'outil `run_desktop`, exécute et montre chaque résultat brut : 1) `echo $DISPLAY` ;
+> 2) `xdotool getdisplaygeometry` ; 3) `xfconf-query -c xfce4-desktop -l | grep last-image` ;
+> 4) change le fond d'écran avec `xfconf-query ... -s <chemin>` puis remets l'ancienne valeur ;
+> 5) `import -window root /workspace/preuve-chatgpt.png` puis `ls -l` ; 6) `xdotool search --name .`
+
+Si le connecteur ne voit pas le nouvel outil : le re-synchroniser (rafraîchir / reconnecter l'app dans
+ChatGPT) — la liste des outils est mise en cache côté ChatGPT.
+
+## Arrêt et retour arrière
 
 ```bash
-cp -r grok-desktop-mcp /home/box/grok-free-poc/full-bridge/desktop/
-# vérifier que le module se charge et que :3 répond (test local, hors ChatGPT) :
-cd /home/box/grok-free-poc/full-bridge/desktop
-node run_desktop.mjs 'echo DISPLAY=$DISPLAY; xdotool getdisplaygeometry'
+touch /home/box/grok-mcp-workspace/desktop-chatGPT.STOP   # coupe run_desktop tout de suite, sans redémarrage
+rm    /home/box/grok-mcp-workspace/desktop-chatGPT.STOP   # réautorise
+bash apply.sh --rollback    # pose STOP, restaure server.mjs d'avant, redémarre : sandbox strict seul
 ```
-Attendu : `DISPLAY=:3` puis la géométrie. Si `xdotool`/`import`/`xfconf-query`
-manquent : `sudo apt-get install -y xdotool imagemagick xfconf` (ne touche à rien
-d'autre).
-
-## 2. Câbler dans `server.mjs` (chemin SÉPARÉ, run_shell intact)
-
-En tête du fichier, à côté des autres imports :
-```js
-import { runDesktopTool, handleRunDesktop } from './desktop/run_desktop.mjs';
-```
-
-Là où les outils sont déclarés au serveur MCP (près de l'enregistrement de
-`run_shell`), ajouter l'outil **sans retirer** `run_shell` :
-
-- **SDK officiel `@modelcontextprotocol/sdk`** (handlers `ListTools` / `CallTool`) :
-  ajouter `runDesktopTool` au tableau renvoyé par `ListTools`, et dans `CallTool` :
-  ```js
-  if (request.params.name === 'run_desktop') return await handleRunDesktop(request.params.arguments);
-  ```
-- **`server.tool(name, schema, handler)`** :
-  ```js
-  server.tool(runDesktopTool.name, runDesktopTool.inputSchema,
-    async (args) => handleRunDesktop(args));
-  ```
-
-Puis : `node --check server.mjs`.
-
-> Ne jamais journaliser `body`, l'en-tête `Authorization`, ni le PIN (comme pour
-> le reste du pont). `run_desktop` ne touche pas à l'auth : il passe par le `/mcp`
-> déjà protégé.
-
-## 3. Redémarrer le pont
-
-Avec **la commande et les variables relevées à l'étape 0** (ne pas improviser).
-Aucun port ne change ; le Funnel 443 → 17779 reste tel quel.
-
-## 4. Preuves sur la box
-
-```bash
-cd /home/box/grok-free-poc/full-bridge/desktop
-bash verifier-desktop.sh
-```
-→ `/workspace/preuve-desktop-chatGPT-AAAAMMJJ-HHMM.txt` (+ copie workspace).
-
-Déposer aussi la doc :
-```bash
-cp DESKTOP-CHATGPT.md /home/box/grok-free-poc/full-bridge/../ 2>/dev/null
-cp DESKTOP-CHATGPT.md "$(ls -d /workspace/pont-sauvegardes-* 2>/dev/null | head -1)/" 2>/dev/null || \
-  cp DESKTOP-CHATGPT.md /workspace/DESKTOP-CHATGPT.md
-```
-
-## 5. Test ChatGPT (la preuve « comme ChatGPT »)
-
-Dans une conversation ChatGPT, connecteur « Grok Linux MCP - complet » activé :
-
-> Avec l'outil `run_desktop`, exécute et montre chaque résultat brut :
-> 1) `echo $DISPLAY` ; 2) `xdotool getdisplaygeometry` ;
-> 3) `xfconf-query -c xfce4-desktop -l | grep last-image` ;
-> 4) change le fond d'écran avec `xfconf-query ... -s <chemin>` puis remets
->    l'ancienne valeur ; 5) `import -window root /workspace/preuve-chatgpt.png`
->    puis `ls -l /workspace/preuve-chatgpt.png` ; 6) `xdotool search --name .`
-
-Vérifier l'**interrupteur OFF** : `touch /workspace/desktop-chatGPT.STOP`, relancer
-un appel (doit être refusé), puis `rm /workspace/desktop-chatGPT.STOP`.
-
-## Rollback (retour au sandbox strict d'avant)
-
-1. `touch /home/box/grok-mcp-workspace/desktop-chatGPT.STOP` (coupe immédiatement).
-2. Dans `server.mjs` : retirer l'`import` et le bloc d'enregistrement `run_desktop`.
-3. `node --check server.mjs`, puis redémarrer le pont avec la commande d'origine.
-4. `run_shell`/`sandbox.mjs` n'ayant pas été modifiés, l'état d'avant est restauré.
-   En dernier recours : restaurer `~/backups/full-bridge-*.tgz`.
+En dernier recours : restaurer `~/backups/full-bridge-*.tgz`.

@@ -62,7 +62,7 @@ l'empêcher.
 - **Retour au sandbox strict d'avant** : retirer l'enregistrement de l'outil dans
   `server.mjs` (le bloc marqué `run_desktop`), retirer l'`import`, redémarrer le
   pont avec la commande relevée à l'audit. `run_shell`/`sandbox.mjs` n'ayant pas
-  été modifiés, l'état d'avant est exactement restauré. Voir `README.md §Rollback`.
+  été modifiés, l'état d'avant est exactement restauré. `bash apply.sh --rollback` le fait en une commande (voir `README.md`, « Arrêt et retour arrière »).
 
 ## Preuves
 
