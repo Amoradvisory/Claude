@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-30",
+  "scope": "local_relay_only",
+  "node": "24.19.0",
+  "typescript_check_exit_code": 0,
+  "worker_tests": { "passed": 15, "failed": 0 },
+  "node_diagnostic_tests": { "passed": 3, "failed": 0 },
+  "cloudflare_dry_run_exit_code": 0,
+  "local_http_diagnostic": {
+    "health": 200,
+    "unauthenticated_mcp_get": 401,
+    "unauthenticated_mcp_post": 401,
+    "oauth_resource_metadata": 200,
+    "oauth_authorization_metadata": 200,
+    "relay_ready": true
+  },
+  "cloudflare_deployed": false,
+  "chatgpt_voice_test": "not_observed",
+  "android_app": "not_implemented",
+  "mobile_data_pc_off_test": "not_observed",
+  "independent_review": "GET-only diagnostic false positive fixed with failing-then-passing regression; bounded form read fixed; concurrent KV consent limitation documented"
+}

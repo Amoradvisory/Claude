@@ -1,0 +1,6 @@
+# Copy to .dev.vars for LOCAL tests; never commit actual values.
+# Generate your secret with a password manager (at least 32 random bytes).
+# Production: wrangler secret put OWNER_SETUP_SECRET
+OWNER_SETUP_SECRET=REPLACE_WITH_A_LONG_RANDOM_OWNER_SECRET
+# Exact HTTPS origin in production, without trailing slash.
+PUBLIC_ORIGIN=http://localhost:8787
