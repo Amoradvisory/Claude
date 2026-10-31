@@ -69,3 +69,11 @@
 L’utilisateur demande explicitement de ne plus attendre un essai vocal : installer dans ChatGPT et faire fonctionner les commandes du téléphone. La validation vocale n’est plus une porte bloquante. Poursuivre les vérifications MCP en texte et Android ; ne pas affirmer une preuve vocale non effectuée.
 
 Cloudflare connecté au compte demandé par OAuth Device Grant officiel. Worker publié et protégé : `https://speed-car-relay.speed-car-relay.workers.dev/mcp`. Une authentification OAuth PKCE, une écriture de reçu et sa relecture ont réussi en production (preuve externe `PROOF-LIVE-20261031.json`). Pas encore de liaison Android distante à ce stade.
+
+
+## Validation finale depuis ChatGPT — 31 octobre 2026
+
+- Lire `RAPPORT-20261031.md` : sept outils appelés depuis deux vrais chats, GPT-6 sélectionné ; volume 50→51→50, reçus contrevérifiés dans le serveur ; cas inconnu suivi d’un succès ; Brave repris.
+- Cause d’intégration réparée : Origin:null sous no-referrer puis retour OAuth bloqué par CSP form-action self ; droits du prototype incomplets réautorisés explicitement. Identifiant asdk_app canonique reconnu par les permissions ; dev est le nom du plugin.
+- Relais et Android 0.3.1 ; code bf4b783, déploiement bfbf3eb1-7e2f-43d7-90e1-0587a66d4270. Code extrait sur le PC, recette R-0046 et note N108 ; acquis existant enrichi en V2.
+- Aucun succès vocal, reboot, longue veille ou PC physiquement arrêté revendiqué. La reprise automatique HyperOS reste à tester.
