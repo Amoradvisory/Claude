@@ -40,11 +40,12 @@ export const mcpApi = {
       const phone = env.PHONE_LINK.getByName(owner);
       const permitted = () => authenticated.auth?.scope.includes(phoneScope);
       const denied = () => ({ isError: true, content: [{ type: 'text' as const, text: 'Reconnecter Speed Car en autorisant le droit speedcar:phone. Aucune commande du téléphone envoyée.' }] });
+      const normalize=(r:Record<string,unknown>,id:string)=>({command_id:id,status:r.status??'indeterminate',outcome:r.outcome??r.status??'indeterminate',proof_scope:'relay_delivery',duration_ms:0,sampled_at:new Date().toISOString(),...r});
       const wrap = (result: Record<string, unknown>) => ({ structuredContent: result,
         content: [{ type: 'text' as const, text: JSON.stringify(result) }] });
       const invoke = async (id: string, kind: PhoneKind, args: Record<string, unknown>) => {
         if (!permitted()) return denied();
-        try { return wrap(await phone.execute({ id, kind, args, expiresAt: Date.now() + ttlFor(kind) })); }
+        try { return wrap(normalize(await phone.execute({ id, kind, args, expiresAt: Date.now() + ttlFor(kind) }),id)); }
         catch { return wrap({ status: 'indeterminate', command_id: id, note: 'La liaison a été interrompue ; lire le résultat avec le même identifiant avant toute nouvelle action.' }); }
       };
       server.registerTool('phone_status', {
@@ -76,16 +77,17 @@ export const mcpApi = {
         description: 'Relit le résultat durable de command_id, sans rejouer la commande. À utiliser après un résultat indeterminate. Historique borné à 200 commandes / 24 heures ; unknown ne prouve pas l’absence d’effet.',
         inputSchema: z.strictObject({ command_id: z.string().uuid() }),
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-      }, async ({ command_id }) => permitted() ? wrap(await phone.commandStatus(command_id)) : denied());
+      }, async ({ command_id }) => permitted() ? wrap(await phone.commandStatus(command_id,authenticated.auth?.scope??[])) : denied());
       for (const capability of capabilities) {
         server.registerTool(capability.name, {
           title:capability.title, description:capability.description,
-          inputSchema:z.strictObject(capability.read ? capability.shape : {command_id:z.string().uuid(),...capability.shape}),
+          inputSchema:z.strictObject(capability.read ? {command_id:z.string().uuid().optional(),...capability.shape} : {command_id:z.string().uuid(),...capability.shape}),
           annotations:{readOnlyHint:!!capability.read,destructiveHint:false,idempotentHint:!!capability.read,openWorldHint:!!capability.open},
         }, async (raw: any) => {
-          if (capability.scope && !authenticated.auth?.scope.includes(capability.scope)) return wrap({status:'permission_required',outcome:'oauth_scope_required',required_scope:capability.scope,executed:false,proof_scope:'authorization_only'});
-          const {command_id,...args}=raw;
-          return invoke(command_id??crypto.randomUUID(),capability.kind,args);
+          const {command_id,...args}=raw; const id=command_id??crypto.randomUUID();
+          const required=capability.scope??(capability.kind==='open_maps'&&args.show_current_location?'speedcar:location':undefined);
+          if (required && !authenticated.auth?.scope.includes(required)) return wrap(normalize({status:'permission_required',outcome:'oauth_scope_required',required_scope:required,executed:false,proof_scope:'authorization_only'},id));
+          return invoke(id,capability.kind,args);
         });
       }
       return server;

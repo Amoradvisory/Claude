@@ -99,3 +99,14 @@ it('never persists a GPS payload or raw destination in durable storage', async (
   });
   socket.close();
 });
+
+it('does not reveal a private receipt through the generic status tool without its scope', async()=>{
+ const socket=await connect();socket.addEventListener('message',e=>{const v=JSON.parse(e.data);if(v.type==='command')socket.send(JSON.stringify({type:'result',id:v.id,result:{status:'verified',latitude:12.34567}}))});
+ const c={id:crypto.randomUUID(),kind:'get_location',args:{},expiresAt:Date.now()+1500};await link().execute(c);
+ const denied=await link().commandStatus(c.id,['speedcar:test','speedcar:phone']);expect(denied.status).toBe('permission_required');expect(denied.latitude).toBeUndefined();
+ expect((await link().commandStatus(c.id,['speedcar:location'])).latitude).toBe(12.34567);socket.close();
+});
+it('rejects concurrent conflicting arguments without dispatching a second effect',async()=>{
+ const socket=await connect();let count=0;socket.addEventListener('message',e=>{const v=JSON.parse(e.data);if(v.type==='command'){count++;socket.send(JSON.stringify({type:'result',id:v.id,result:{status:'verified'}}))}});
+ const a={id:crypto.randomUUID(),kind:'media_volume_up',args:{steps:1},expiresAt:Date.now()+1500};const outcomes=await Promise.all([link().execute(a),link().execute({...a,args:{steps:2}})]);expect(count).toBe(1);expect(outcomes.some(r=>r.reason==='command_id_conflict')).toBe(true);socket.close();
+});

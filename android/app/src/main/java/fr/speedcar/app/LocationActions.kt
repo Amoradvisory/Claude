@@ -23,16 +23,18 @@ import java.util.concurrent.atomic.AtomicReference
 
 class LocationActions(private val context:Context) {
  companion object {
-  data class Request(val maxAge:Int,val allowLast:Boolean,val expiry:Long,val latch:CountDownLatch=CountDownLatch(1),val result:AtomicReference<JSONObject?> = AtomicReference(null))
+  data class Request(val maxAge:Int,val allowLast:Boolean,val expiry:Long,val latch:CountDownLatch=CountDownLatch(1),val result:AtomicReference<JSONObject?> = AtomicReference(null),var cancel:(()->Unit)?=null)
   val pending=ConcurrentHashMap<String,Request>()
-  fun finish(id:String,result:JSONObject){pending[id]?.let{it.result.compareAndSet(null,result);it.latch.countDown()}}
+  fun finish(id:String,result:JSONObject){pending[id]?.let{it.result.compareAndSet(null,result);it.latch.countDown();if(result.optString("status")=="cancelled")it.cancel?.invoke()}}
+  fun cancelAll(){pending.keys.forEach{finish(it,JSONObject().put("status","cancelled").put("outcome","privacy_revoked"))}}
   fun permitted(c:Context)=c.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED||c.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED
   fun fix(location:Location,requestStarted:Long):JSONObject {
+   if(location.isMock)return JSONObject().put("status","mock_location_detected").put("proof_scope","android_location_provider").put("mock",true)
    ActionPolicy.coordinates(location.latitude,location.longitude)
    val age=((SystemClock.elapsedRealtimeNanos()-location.elapsedRealtimeNanos)/1_000_000L).coerceAtLeast(0)
    return JSONObject().put("status","verified").put("proof_scope","android_location").put("latitude",location.latitude).put("longitude",location.longitude)
     .put("accuracy_meters",if(location.hasAccuracy())location.accuracy else JSONObject.NULL).put("location_timestamp",Instant.ofEpochMilli(location.time).toString())
-    .put("age_ms",age).put("provider",location.provider?:"unknown").put("position_kind",if(location.elapsedRealtimeNanos>=requestStarted-1_000_000_000L)"current" else "last_known")
+    .put("age_ms",age).put("provider",location.provider?:"unknown").put("position_kind",if(location.elapsedRealtimeNanos>=requestStarted)"current" else "last_known")
     .put("mock",location.isMock)
   }
  }

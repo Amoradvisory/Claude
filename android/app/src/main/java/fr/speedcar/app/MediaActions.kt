@@ -34,6 +34,7 @@ class MediaActions(private val context:Context) {
   if(audio.mode!=AudioManager.MODE_NORMAL)return JSONObject().put("status","call_in_progress").put("executed",false)
   val session=sessions[selected];val before=snapshot(session);val oldTrack=track(session);val desired=when(kind){"media_play"->PlaybackState.STATE_PLAYING;"media_pause"->PlaybackState.STATE_PAUSED;else->null}
   if(desired!=null&&session.playbackState?.state==desired)return JSONObject().put("status","verified").put("outcome","already_in_requested_state").put("proof_scope","android_media_session_state").put("session",before)
+  if(System.currentTimeMillis()>=expiry)return JSONObject().put("status","expired").put("executed",false)
   when(kind){"media_play"->session.transportControls.play();"media_pause"->session.transportControls.pause();"media_next"->session.transportControls.skipToNext();"media_previous"->session.transportControls.skipToPrevious();else->throw IllegalArgumentException("unsupported_media_action")}
   val until=minOf(expiry,System.currentTimeMillis()+1500);var observed=false
   while(System.currentTimeMillis()<until&&!observed){Thread.sleep(80);observed=if(desired!=null)session.playbackState?.state==desired else oldTrack!=null&&track(session)!=null&&track(session)!=oldTrack}

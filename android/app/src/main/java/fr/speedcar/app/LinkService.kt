@@ -139,6 +139,7 @@ class LinkService : Service() {
         }
     }
     override fun onDestroy() {
+        LocationActions.cancelAll()
         stopped = true; connected = false; handler.removeCallbacksAndMessages(null)
         socket?.close(1000, "Mode stopped"); socket = null
         try { getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(networkCallback) } catch (_: Exception) {}

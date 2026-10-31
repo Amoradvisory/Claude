@@ -35,27 +35,33 @@ class RemoteActions(private val context: Context, private val pairing: Pairing, 
         ledger.existing(id)?.let { return it }
         if (!ledger.claim(id)) return ledger.existing(id)!!
         val start = SystemClock.elapsedRealtime()
-        val result = try {
+        var result = try {
             val expiry = command.getLong("expiresAt")
             when {
                 command.optString("deviceId") != pairing.deviceId -> JSONObject().put("status", "rejected").put("reason", "wrong_device")
                 expiry <= System.currentTimeMillis() -> JSONObject().put("status", "expired").put("executed", false)
-                expiry - System.currentTimeMillis() > 10_000 -> JSONObject().put("status", "rejected").put("reason", "clock_skew")
+                expiry - System.currentTimeMillis() > maxOf(10000L, NativeCatalog.ttl(command.optString("kind")) + 2000) -> JSONObject().put("status", "rejected").put("reason", "clock_skew")
                 !PairingStore(context).prefs.getBoolean("mode_enabled", false) -> JSONObject().put("status", "rejected").put("reason", "mode_disabled")
                 else -> when (command.getString("kind")) {
                     "status" -> state().put("status", "verified").put("proof_scope", "android_state")
                     "media_volume_up" -> increase(command.optJSONObject("args")?.optInt("steps", 1) ?: 1)
                     "media_volume_down" -> decrease(command.optJSONObject("args")?.optInt("steps", 1) ?: 1)
                     "youtube_brave" -> openBrave(expiry)
-                    else -> JSONObject().put("status", "rejected").put("reason", "unsupported_capability")
+                    else -> NativeCatalog.execute(context, command.getString("kind"), command.optJSONObject("args") ?: JSONObject(), expiry)
                 }
             }
         } catch (e: Exception) {
             JSONObject().put("status", "indeterminate").put("error_type", e.javaClass.simpleName)
         }
+        val kind=command.optString("kind")
+        val prefs=context.getSharedPreferences("speed-car-private",0)
+        val revoked=when(kind){"get_location"->!prefs.getBoolean("location_enabled",false)||!LocationActions.permitted(context);"get_notifications"->!prefs.getBoolean("notifications_enabled",false);"screen_context"->!prefs.getBoolean("screen_enabled",false);else->false}
+        if(revoked&&result.optString("status")=="verified") result=JSONObject().put("status","cancelled").put("outcome","privacy_revoked").put("proof_scope","authorization_only")
         result.put("command_id", id).put("model", Build.MODEL).put("duration_ms", SystemClock.elapsedRealtime() - start)
             .put("sampled_at", Instant.now().toString())
-        ledger.complete(id, result)
+        if (!result.has("outcome")) result.put("outcome", result.optString("status", "indeterminate"))
+        if (!result.has("proof_scope")) result.put("proof_scope", if (result.optString("status") == "permission_required") "authorization_only" else "native_action_receipt")
+        ledger.complete(id, result, NativeCatalog.sensitive(command.optString("kind")))
         return result
     }
 
@@ -140,7 +146,7 @@ class RemoteActions(private val context: Context, private val pairing: Pairing, 
             caps?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "mobile"
             else -> "other_or_unknown"
         }
-        return JSONObject().put("model", Build.MODEL).put("android", Build.VERSION.RELEASE)
+        return JSONObject().put("version", "2.0.0").put("capabilities", org.json.JSONArray(NativeCatalog.kinds.toList())).put("location_enabled", context.getSharedPreferences("speed-car-private",0).getBoolean("location_enabled",false)).put("location_permission_granted",LocationActions.permitted(context)).put("notifications_enabled",context.getSharedPreferences("speed-car-private",0).getBoolean("notifications_enabled",false)).put("screen_enabled",context.getSharedPreferences("speed-car-private",0).getBoolean("screen_enabled",false)).put("model", Build.MODEL).put("android", Build.VERSION.RELEASE)
             .put("battery_percent", context.getSystemService(BatteryManager::class.java).getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
             .put("media_volume", audio.getStreamVolume(AudioManager.STREAM_MUSIC)).put("media_maximum", audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC))
             .put("audio_mode", audio.mode).put("network", kind)

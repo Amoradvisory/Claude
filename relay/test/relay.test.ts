@@ -221,3 +221,8 @@ describe('Speed Car 2 assistant contracts', () => {
     expect(listing.result.tools.find((t: any) => t.name === 'phone_navigate').annotations.readOnlyHint).toBe(false);
   });
 });
+
+it('refuses private capabilities without additional OAuth consent and returns a full receipt', async () => {
+ const token=await grant();const call=await mcp(token.access_token,'tools/call',{name:'phone_get_location',arguments:{}});const r=call.result.structuredContent;
+ expect(r.status).toBe('permission_required');expect(r.required_scope).toBe('speedcar:location');expect(r.command_id).toMatch(/^[a-f0-9-]{36}$/);expect(r.sampled_at).toBeTruthy();expect(r.duration_ms).toBe(0);
+});

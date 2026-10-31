@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import type { Env } from './env';
-import {kindAllowed,isSensitive,sensitiveReceipt} from './capabilities';
+import {kindAllowed,isSensitive,sensitiveReceipt,privateScopeFor} from './capabilities';
 
 export type PhoneKind = string;
 export interface PhoneCommand {
@@ -62,6 +62,7 @@ export class PhoneLink extends DurableObject<Env> {
       const result = { ...data.result, command_id: entry.id, device_id: a.deviceId, received_at: new Date().toISOString() };
       if (isSensitive(entry.kind)) {
         this.transient.set(entry.id,{at:Date.now(),result});
+        setTimeout(()=>this.transient.delete(entry.id),30000);
         while(this.transient.size>50)this.transient.delete(this.transient.keys().next().value!);
       }
       await this.ctx.storage.put(key, { ...entry, result:isSensitive(entry.kind)?sensitiveReceipt(entry.id,result):result, status: String(data.result.status ?? 'indeterminate') });
@@ -77,11 +78,13 @@ export class PhoneLink extends DurableObject<Env> {
     return { connected: Boolean(this.activeSocket()), last_sample: await this.ctx.storage.get('last_link') ?? null };
   }
 
-  async commandStatus(id: string): Promise<Record<string, unknown>> {
+  async commandStatus(id: string, allowedScopes?:string[]): Promise<Record<string, unknown>> {
     if (!uuid.test(id)) return { status: 'rejected', reason: 'invalid_command_id' };
-    const current=this.ephemeral(id); if(current)return current;
     const e = await this.ctx.storage.get<Entry>(`command:${id}`);
     if (!e) return { status: 'unknown', command_id: id, note: 'No retained receipt. Do not infer that no effect occurred.' };
+    const needed=privateScopeFor(e.kind);
+    if(allowedScopes!==undefined&&needed&&!allowedScopes.includes(needed))return {status:'permission_required',required_scope:needed,command_id:id,executed:false};
+    const current=this.ephemeral(id);if(current)return current;
     return e.result ?? { status: 'indeterminate', command_id: id, expires_at: e.expiresAt, note: 'No final receipt; do not repeat with a new ID.' };
   }
 
@@ -111,7 +114,7 @@ export class PhoneLink extends DurableObject<Env> {
       await storage.put('command_index', [...keep, { id: command.id, at: Date.now() }]);
       return true;
     });
-    if (!inserted) return this.commandStatus(command.id);
+    if (!inserted) {const prior=await this.ctx.storage.get<Entry>(key);if(prior&&(prior.kind!==command.kind||prior.argsHash!==argsHash))return {status:'rejected',reason:'command_id_conflict',command_id:command.id};return this.commandStatus(command.id);}
     try { socket.send(JSON.stringify({ type: 'command', deviceId: this.env.PHONE_DEVICE_ID, ...command })); }
     catch { return this.commandStatus(command.id); }
     const end = command.expiresAt + 1300;

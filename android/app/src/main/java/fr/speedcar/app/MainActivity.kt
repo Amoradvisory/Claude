@@ -82,6 +82,7 @@ class MainActivity : Activity() {
             refreshConnection()
         }
         page.addView(connectionButton)
+        page.addView(button("Fonctions Speed Car 2.0 et autorisations", false) { startActivity(Intent(this, AssistantSettingsActivity::class.java)) })
         page.addView(button("Autoriser l’ouverture de Brave", false) {
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
         })
@@ -153,7 +154,7 @@ class MainActivity : Activity() {
         page.addView(result)
         page.addView(button("Copier le diagnostic", false) {
             val diagnostic = JSONObject().put("app", "Speed Car")
-                .put("version", "0.3.1").put("model", Build.MODEL)
+                .put("version", "2.0.0").put("model", Build.MODEL)
                 .put("android", Build.VERSION.RELEASE).put("ceilingPercent", ceiling)
                 .put("mediaVolume", audio.getStreamVolume(AudioManager.STREAM_MUSIC))
                 .put("remoteLink", LinkService.connected).put("lastResult", lastResult)
