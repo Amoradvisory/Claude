@@ -26,7 +26,7 @@
 | Déploiement dans le compte Cloudflare du propriétaire | BLOQUÉ | `wrangler whoami` : « You are not authenticated » ; aucune identité Cloudflare injectée dans cet environnement |
 | MCP personnel depuis le vrai ChatGPT vocal Android | PRÉPARÉ À TESTER | Compte Plus confirmé ; des MCP personnels existent déjà chez cet utilisateur. Appel vocal de Speed Car encore non observé |
 | Données mobiles, PC éteint | PRÉPARÉ À TESTER | Protocole fourni ; dépend du déploiement et de l'accès MCP du compte |
-| Volume et YouTube dans Brave | PRÉPARÉ À TESTER | Conception définie ; code Android volontairement non commencé avant P0 |
+| Volume et YouTube dans Brave | PRÉPARÉ À TESTER | Prototype Android 0.2.0-local installé le 31/10 ; écran lu ; effets réels des deux boutons non testés |
 
 ## Reprise utile
 
@@ -47,3 +47,17 @@
 - La configuration initiale depuis un PC est compatible avec l’objectif : après hébergement, l’usage doit fonctionner en données mobiles avec le PC éteint, sans Remote Desktop Commander sur le trajet.
 - Prochaine dépendance réelle : compte Cloudflare du propriétaire créé/connecté, déploiement du relais existant, connexion MCP depuis le web, puis reçu observé depuis la vraie conversation vocale. Ne pas recommander un changement d’abonnement sans échec concret établi et diagnostic de sa cause.
 - Condition de revalidation : changement effectif d’accès, de compte/espace ou de permissions, ou erreur lors de l’ajout/l’appel de Speed Car ; distinguer configuration, OAuth, autorisation d’action et mode vocal.
+
+
+## Reprise du 31 octobre 2026 : produire une application installable
+
+- Déclencheur : l’utilisateur abandonne le projet Quest puis demande pourquoi Speed Car n’est toujours pas créé. Le travail précédent avait volontairement différé Android jusqu’à la preuve vocale MCP, encore dépendante de l’hébergement.
+- Décision : construire immédiatement un prototype local des deux primitives Android indépendantes, sans annoncer la chaîne vocale réussie et sans remplacer le relais existant. La porte vocale reste obligatoire avant le contrôle distant ; le service permanent, les commandes réseau et leurs garanties ne sont pas implémentés prématurément.
+- Code ajouté dans `android/` : application Kotlin `fr.speedcar.app`, volume média à plafond réglable (60 % initial), lecture avant/après et ouverture de YouTube ciblée sur Brave. Aucune lecture vidéo ni nouveau service au démarrage.
+- Vérifications réussies : construction et signature APK v2, 9 tests de politique de volume (0 échec), analyse Android sans erreur bloquante. Version 0.2.0-local installée sur le Redmi 2510ERA8BG : relecture du gestionnaire de paquets, ouverture en arrière-plan via go.js et deux boutons constatés. Volume affiché 100/170 ; aucune action de hausse ni ouverture de YouTube exécutée. Session arrière-plan arrêtée après lecture.
+- Limites : pas de microphone, pas de commande vocale, pas de transport réseau, pas d’automatisation arrière-plan dans cette version locale. Le fonctionnement final sans PC reste à démontrer après déploiement du relais, appairage et intégration Android.
+- Prochaine dépendance utilisateur : état du compte Cloudflare demandé ; pas de mot de passe ni jeton à coller dans la conversation.
+- Revalidation : toute évolution du contrôle audio, des permissions ou du transport ; tests distincts HyperOS, Bluetooth, verrouillage et reprise réseau.
+
+- Preuves du 31/10 : `PREUVE-ANDROID-20261031.json`, tests Android et APK dans les sorties de build ; copie sur le PC dans `C:\ChatGPT-Agent\speed-car`. Ouverture via `go.js "ph bg start fr.speedcar.app ; ph bg screen"`, puis `ph bg stop`. Note PC N106 / fiche candidate P-0028 : application locale installée, aucune prétendue validation du contrôle vocal.
+- Désinstallation de ce prototype : supprimer uniquement Speed Car (`fr.speedcar.app`) depuis les réglages Android. Pas de changement de phoned/Tailscale. Conservation du relais antérieur et de la conception ; sauvegarde du document de progression avant édition dans `/workspace/speed-car/backups/`.
