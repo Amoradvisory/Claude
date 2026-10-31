@@ -210,3 +210,14 @@ describe('MCP test action', () => {
     expect(after.result.structuredContent.count).toBe(before.result.structuredContent.count);
   });
 });
+
+describe('Speed Car 2 assistant contracts', () => {
+  it('exposes Maps GPS media apps and device tools while retaining the original seven', async () => {
+    const token = await grant();
+    const listing = await mcp(token.access_token, 'tools/list');
+    const names = listing.result.tools.map((t: any) => t.name);
+    for (const name of ['phone_get_location','phone_open_maps','phone_navigate','phone_open_app','phone_list_apps','phone_open_url','phone_open_settings','phone_media_play','phone_media_pause','phone_media_next','phone_media_previous','phone_media_status','phone_set_media_volume','phone_flashlight','phone_find_device','phone_get_battery_details','phone_get_connectivity','phone_share_location','phone_get_notifications','phone_get_screen_context','phone_ui_action','phone_speak','phone_set_alarm','phone_prepare_sms','phone_dial','phone_share','phone_notification_action','phone_status','phone_media_volume_up','phone_media_volume_down','phone_open_youtube_brave','phone_command_status','speedcar_test_action','speedcar_status']) expect(names).toContain(name);
+    expect(listing.result.tools.find((t: any) => t.name === 'phone_get_location').annotations.readOnlyHint).toBe(true);
+    expect(listing.result.tools.find((t: any) => t.name === 'phone_navigate').annotations.readOnlyHint).toBe(false);
+  });
+});

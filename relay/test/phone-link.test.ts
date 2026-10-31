@@ -84,3 +84,18 @@ describe('Phone authentication and durable command delivery', () => {
     expect((await link().commandStatus(command.id)).status).toBe('unknown');
   });
 });
+
+it('never persists a GPS payload or raw destination in durable storage', async () => {
+  const socket = await connect();
+  socket.addEventListener('message', event => {
+    const value = JSON.parse(event.data);
+    if (value.type === 'command') socket.send(JSON.stringify({type:'result',id:value.id,result:{status:'verified',latitude:12.34567,longitude:23.45678,proof_scope:'android_location'}}));
+  });
+  const command={id:crypto.randomUUID(),kind:'get_location',args:{label:'private-synthetic-destination'},expiresAt:Date.now()+1000};
+  expect((await link().execute(command)).latitude).toBe(12.34567);
+  await runInDurableObject(link(), async (_instance,state)=>{
+    const rows=JSON.stringify([...await state.storage.list()]);
+    expect(rows).not.toContain('12.34567');expect(rows).not.toContain('private-synthetic-destination');
+  });
+  socket.close();
+});

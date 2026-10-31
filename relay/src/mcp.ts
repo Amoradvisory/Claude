@@ -2,6 +2,7 @@ import { McpServer, createMcpHandler } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { owner, scope, phoneScope, type Env } from './env';
 import type { PhoneKind } from './phone-link';
+import {capabilities, ttlFor} from './capabilities';
 
 export const mcpApi = {
   async fetch(request, env, context) {
@@ -13,8 +14,8 @@ export const mcpApi = {
     if (new URL(request.url).pathname !== '/mcp') return new Response('Introuvable', { status: 404 });
     const state = env.OWNER_STATE.getByName(owner);
     const handler = createMcpHandler(() => {
-      const server = new McpServer({ name: 'speed-car', version: '0.3.1' }, {
-        instructions: 'Speed Car pilote uniquement le téléphone appairé. Un appel spécialisé par demande. Pour une hausse du volume, phone_media_volume_up ; pour YouTube dans Brave, phone_open_youtube_brave. Générer un nouvel UUID command_id pour chaque demande volontaire et conserver le même en cas de reprise de transport. Si le résultat est indeterminate, lire phone_command_status avec ce même ID, sans rejouer avec un nouvel ID. Confirmer seulement les faits du reçu : un index média ne prouve pas le niveau acoustique ; Brave repris ne prouve pas le chargement de YouTube. Le test du relais ne prouve pas une action du téléphone.',
+      const server = new McpServer({ name: 'speed-car', version: '2.0.0' }, {
+        instructions: 'Speed Car pilote uniquement le téléphone appairé. Un appel spécialisé par demande. GPS : phone_get_location, Google Maps : phone_open_maps, navigation : phone_navigate. Nom d’application : phone_open_app. Ne jamais inventer maison, un destinataire ou des coordonnées. Les données sensibles sont temporaires ; permission_required exige une autorisation volontaire, jamais un contournement. Un intent de navigation ne prouve pas un itinéraire calculé. Actions composées : appels successifs avec reçus, aucun effet incertain rejoué. Lecture d’écran/notifications seulement sur demande explicite. Pour une hausse du volume, phone_media_volume_up ; pour YouTube dans Brave, phone_open_youtube_brave. Générer un nouvel UUID command_id pour chaque demande volontaire et conserver le même en cas de reprise de transport. Si le résultat est indeterminate, lire phone_command_status avec ce même ID, sans rejouer avec un nouvel ID. Confirmer seulement les faits du reçu : un index média ne prouve pas le niveau acoustique ; Brave repris ne prouve pas le chargement de YouTube. Le test du relais ne prouve pas une action du téléphone.',
       });
       server.registerTool('speedcar_test_action', {
         title: 'Tester une action Speed Car',
@@ -41,9 +42,9 @@ export const mcpApi = {
       const denied = () => ({ isError: true, content: [{ type: 'text' as const, text: 'Reconnecter Speed Car en autorisant le droit speedcar:phone. Aucune commande du téléphone envoyée.' }] });
       const wrap = (result: Record<string, unknown>) => ({ structuredContent: result,
         content: [{ type: 'text' as const, text: JSON.stringify(result) }] });
-      const invoke = async (id: string, kind: PhoneKind, args: { steps?: number }) => {
+      const invoke = async (id: string, kind: PhoneKind, args: Record<string, unknown>) => {
         if (!permitted()) return denied();
-        try { return wrap(await phone.execute({ id, kind, args, expiresAt: Date.now() + (kind === 'youtube_brave' ? 5000 : 3000) })); }
+        try { return wrap(await phone.execute({ id, kind, args, expiresAt: Date.now() + ttlFor(kind) })); }
         catch { return wrap({ status: 'indeterminate', command_id: id, note: 'La liaison a été interrompue ; lire le résultat avec le même identifiant avant toute nouvelle action.' }); }
       };
       server.registerTool('phone_status', {
@@ -76,6 +77,17 @@ export const mcpApi = {
         inputSchema: z.strictObject({ command_id: z.string().uuid() }),
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       }, async ({ command_id }) => permitted() ? wrap(await phone.commandStatus(command_id)) : denied());
+      for (const capability of capabilities) {
+        server.registerTool(capability.name, {
+          title:capability.title, description:capability.description,
+          inputSchema:z.strictObject(capability.read ? capability.shape : {command_id:z.string().uuid(),...capability.shape}),
+          annotations:{readOnlyHint:!!capability.read,destructiveHint:false,idempotentHint:!!capability.read,openWorldHint:!!capability.open},
+        }, async (raw: any) => {
+          if (capability.scope && !authenticated.auth?.scope.includes(capability.scope)) return wrap({status:'permission_required',outcome:'oauth_scope_required',required_scope:capability.scope,executed:false,proof_scope:'authorization_only'});
+          const {command_id,...args}=raw;
+          return invoke(command_id??crypto.randomUUID(),capability.kind,args);
+        });
+      }
       return server;
     });
     return handler.fetch(request);

@@ -1,6 +1,6 @@
 import OAuthProvider from '@cloudflare/workers-oauth-provider';
 import { consent } from './consent';
-import { configuredOrigin, scope, phoneScope, owner, type Env } from './env';
+import { configuredOrigin, scope, phoneScope, sensitiveScopes, owner, type Env } from './env';
 import { mcpApi } from './mcp';
 export { OwnerState } from './owner-state';
 export { PhoneLink } from './phone-link';
@@ -18,7 +18,7 @@ export default {
       return env.PHONE_LINK.getByName(owner).fetch(request);
     }
     if (url.pathname === '/health' && request.method === 'GET') return Response.json({
-      service: 'speed-car', version: '0.3.1', configured: Boolean(origin),
+      service: 'speed-car', version: '2.0.0', configured: Boolean(origin),
       stage: 'device-link', android_control: 'available_when_paired', voice_test: 'not_observed',
     }, { status: origin ? 200 : 503, headers: { 'cache-control': 'no-store' } });
     if (!origin) return new Response('Configuration Speed Car manquante', { status: 503 });
@@ -27,7 +27,7 @@ export default {
       apiRoute: '/mcp', apiHandler: mcpApi,
       defaultHandler: { fetch: (req, bindings) => new URL(req.url).pathname === '/authorize' ? consent(req, bindings) : new Response('Introuvable', { status: 404 }) },
       authorizeEndpoint: '/authorize', tokenEndpoint: '/oauth/token', clientRegistrationEndpoint: '/oauth/register',
-      scopesSupported: [scope, phoneScope, 'offline_access'], requiredScopes: [scope, phoneScope],
+      scopesSupported: [scope, phoneScope, ...sensitiveScopes, 'offline_access'], requiredScopes: [scope, phoneScope],
       clientIdMetadataDocumentEnabled: true,
       accessTokenTTL: 3600, refreshTokenTTL: 2_592_000,
       resourceMetadata: { resource: `${origin}/mcp`, authorization_servers: [origin] },

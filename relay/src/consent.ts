@@ -1,5 +1,5 @@
 import { AuthorizationError, CimdFetchError, type ConsentDescription } from '@cloudflare/workers-oauth-provider';
-import { owner, scope, phoneScope, type Env } from './env';
+import { owner, scope, phoneScope, sensitiveScopes, type Env } from './env';
 
 const escape = (value: string) => value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 const digest = (value: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
@@ -31,7 +31,7 @@ function page(details: ConsentDescription, handle: string): string {
 <p>Destination de l'autorisation : <strong>${escape(details.redirectHost)}</strong>.</p>
 ${details.redirectIsLoopback ? '<p>Attention : cette destination est une application locale sur votre ordinateur.</p>' : ''}
 <p>Droits demandés : ${details.scope.map(escape).join(', ')}.</p>
-<p>Speed Car peut tester le relais et, si le droit speedcar:phone est demandé, envoyer les commandes autorisées au téléphone appairé : état, volume média et ouverture de YouTube dans Brave.</p>
+<p>Speed Car peut tester le relais et, si le droit speedcar:phone est demandé, envoyer les commandes autorisées au téléphone appairé : état, volume, applications, navigation, médias et préparation de partage. Les droits speedcar:location, speedcar:notifications et speedcar:screen autorisent respectivement la localisation ponctuelle, les notifications et le contexte d’écran, seulement si les autorisations Android correspondantes ont été activées volontairement.</p>
 <p>Autorisez seulement une connexion que vous venez de demander dans ChatGPT. Effectuez cette préparation à l'arrêt.</p>
 <form method="post" action="/authorize"><input type="hidden" name="handle" value="${escape(handle)}">
 <label>Secret propriétaire <input type="password" name="owner_secret" autocomplete="current-password" maxlength="256" required></label>
@@ -45,7 +45,7 @@ export async function consent(request: Request, env: Env): Promise<Response> {
       const authRequest = await oauth.parseAuthRequest(request);
       const details = await oauth.describeConsent(authRequest);
       // This application grants no rights outside the two explicitly supported scopes.
-      if (details.scope.some((s) => ![scope, phoneScope, 'offline_access'].includes(s))) return new Response('Droit non pris en charge', { status: 400 });
+      if (details.scope.some((s) => ![scope, phoneScope, ...sensitiveScopes, 'offline_access'].includes(s))) return new Response('Droit non pris en charge', { status: 400 });
       const transaction = await oauth.beginConsent(authRequest);
       transaction.headers.set('content-type', 'text/html; charset=utf-8');
       transaction.headers.set('cache-control', 'no-store');

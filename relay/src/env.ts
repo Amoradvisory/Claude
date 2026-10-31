@@ -27,3 +27,5 @@ export function configuredOrigin(env: Env): string | undefined {
     return url.origin;
   } catch { return; }
 }
+
+export const sensitiveScopes=['speedcar:location','speedcar:notifications','speedcar:screen'];
