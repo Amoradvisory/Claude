@@ -1,3 +1,5 @@
+> Historique : les étapes ci-dessous décrivent des états antérieurs. La liaison native 0.3.1 et le relais sont maintenant déployés ; consulter les preuves datées et le rapport de diagnostic ChatGPT pour le dernier état. Le test vocal n’est plus une porte bloquante depuis l’instruction explicite du 31/10.
+
 # Progression Speed Car — plan : PLAN-PORTE-0.md
 
 - Source : branche ccr-421eb031-o100d2, contenant uniquement CONCEPTION.md ; aucune implémentation préexistante.
@@ -61,3 +63,9 @@
 
 - Preuves du 31/10 : `PREUVE-ANDROID-20261031.json`, tests Android et APK dans les sorties de build ; copie sur le PC dans `C:\ChatGPT-Agent\speed-car`. Ouverture via `go.js "ph bg start fr.speedcar.app ; ph bg screen"`, puis `ph bg stop`. Note PC N106 / fiche candidate P-0028 : application locale installée, aucune prétendue validation du contrôle vocal.
 - Désinstallation de ce prototype : supprimer uniquement Speed Car (`fr.speedcar.app`) depuis les réglages Android. Pas de changement de phoned/Tailscale. Conservation du relais antérieur et de la conception ; sauvegarde du document de progression avant édition dans `/workspace/speed-car/backups/`.
+
+## Instruction utilisateur actualisée — 31 octobre
+
+L’utilisateur demande explicitement de ne plus attendre un essai vocal : installer dans ChatGPT et faire fonctionner les commandes du téléphone. La validation vocale n’est plus une porte bloquante. Poursuivre les vérifications MCP en texte et Android ; ne pas affirmer une preuve vocale non effectuée.
+
+Cloudflare connecté au compte demandé par OAuth Device Grant officiel. Worker publié et protégé : `https://speed-car-relay.speed-car-relay.workers.dev/mcp`. Une authentification OAuth PKCE, une écriture de reçu et sa relecture ont réussi en production (preuve externe `PROOF-LIVE-20261031.json`). Pas encore de liaison Android distante à ce stade.

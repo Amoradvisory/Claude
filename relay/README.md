@@ -1,76 +1,54 @@
-# Relais Speed Car — porte 0
+# Relais Speed Car 0.3.1
 
-Ce premier composant permet de vérifier qu'une **écriture MCP personnelle** est utilisable depuis ChatGPT vocal Android. Il ne contient aucun pilote Android et ne nécessite ni PC ni ADB pour fonctionner une fois hébergé.
+Worker Cloudflare TypeScript + OAuth 2.1/PKCE + MCP + Durable Objects. Le relais commande uniquement le Redmi appairé par sa connexion WSS sortante. Speed Car est un outil personnel de commande Android, pas un jeu, et n'expose aucun véhicule, score, avatar ou pilote autonome.
 
-## Ce qui existe
+## Outils MCP
 
-- Worker Cloudflare TypeScript et protocole MCP officiel, compatible avec les clients 2025 et 2026 du SDK retenu.
-- OAuth 2.1 : découverte, PKCE, jetons et renouvellement fournis par la bibliothèque Cloudflare officielle.
-- Consentement initial avec secret propriétaire aléatoire, cookie sécurisé lié au navigateur, contrôle d'origine, refus du rejeu séquentiel et limitation des essais.
-- `speedcar_test_action` : écrit puis relit un reçu dans un Durable Object. C'est une écriture déclarée comme telle. Chaque nouvel appel volontaire produit un reçu ; cet outil n'est pas idempotent et n'a aucun effet Android.
-- `speedcar_status` : lit le compteur et le dernier reçu conservés. Seul le dernier reçu est stocké, sans historique croissant.
-- `GET /health` : état de configuration uniquement ; jamais une preuve du mode vocal.
-- Diagnostic public sans secret, qui contrôle aussi que MCP refuse les appels anonymes.
+| Outil | Effet |
+|---|---|
+| `phone_status` | Lecture native actuelle du téléphone, sans réveil |
+| `phone_media_volume_up` | Hausse média de 1 à 3 index, plafond local, lecture avant/après |
+| `phone_media_volume_down` | Baisse média de 1 à 3 index, lecture avant/après |
+| `phone_open_youtube_brave` | Ouverture ciblée de YouTube dans Brave, sans lecture vidéo |
+| `phone_command_status` | Relecture d'un reçu sans rejouer l'effet |
+| `speedcar_test_action` | Écriture d'un reçu de test du relais seulement |
+| `speedcar_status` | Relecture du dernier reçu de test du relais |
 
-## Vérification locale
+Les commandes physiques exigent un `command_id` UUID : nouveau pour chaque demande volontaire, identique sur reprise du transport. Après `indeterminate`, lire le reçu et ne pas recréer un identifiant pour rejouer aveuglément. Expiration : 3 s pour état/volume, 5 s pour Brave. Téléphone hors ligne : refus immédiat sans file d'attente. Reçus conservés au plus 200 commandes / 24 h. `unknown` ne prouve pas l'absence d'effet ancien.
 
-Node 24 ou supérieur. Depuis ce dossier :
+## Authentification et configuration
+
+MCP : `https://speed-car-relay.speed-car-relay.workers.dev/mcp`.
+OAuth requiert les droits `speedcar:test speedcar:phone` ; demander aussi `offline_access` pour le renouvellement. Le consentement personnel est protégé par secret propriétaire, cookie lié au navigateur, contrôle strict d'origine, formulaire borné et limitation des essais. Aucun secret dans les URL ou Git.
+
+Variables privées du Worker : `OWNER_SETUP_SECRET`, `PUBLIC_ORIGIN`, `PHONE_DEVICE_ID`, `PHONE_TOKEN_HASH`, `PHONE_MODEL`. Le relais ne reçoit que le SHA-256 du jeton appareil. Namespace KV OAuth, Durable Objects `OwnerState` et `PhoneLink`. Créer les ressources uniquement dans le compte personnel autorisé.
+
+La configuration de production, avec identifiants de compte et de namespace, est dans `wrangler.production.jsonc`, ignorée par Git. Le modèle suivi `wrangler.jsonc` exige de remplacer le namespace avant un premier déploiement. Utiliser Wrangler OAuth officiel ; ne jamais recopier ses jetons dans les sources.
 
 ```sh
 npm ci
 npm run check
 npm test
 npm run build
+npx wrangler whoami
+npx wrangler deploy --config wrangler.production.jsonc
+npm run diagnostic -- https://speed-car-relay.speed-car-relay.workers.dev
 ```
 
-Les tests s'exécutent localement dans le runtime Worker avec son stockage réel et un véritable échange de code OAuth PKCE. Les valeurs de test présentes dans la configuration Vitest ne sont pas utilisables en production. Le build est un **déploiement à blanc** ; il ne publie rien.
+`build` effectue un déploiement à blanc. Le diagnostic public n'appelle aucune action physique et vérifie aussi le refus des GET et POST MCP anonymes. `relay_ready` ne prouve ni liaison Android ni ChatGPT.
 
-Pour démarrer localement : copier `.dev.vars.example` en `.dev.vars`, remplacer le secret par une valeur aléatoire privée d'au moins 32 octets (par exemple 64 caractères hexadécimaux générés par un gestionnaire de mots de passe), puis :
+## Régression navigateur corrigée
 
-```sh
-npm run dev
-npm run diagnostic -- http://localhost:8787
-```
+Une page OAuth peut réussir en test HTTP et échouer réellement dans Chromium. `Referrer-Policy: no-referrer` faisait envoyer `Origin: null` au formulaire POST, refusé par le contrôle CSRF. Politique corrigée en `same-origin`, conservant l'absence de référent sur le retour externe. Ensuite, `form-action 'self'` bloquait la redirection OAuth ; la politique autorise désormais uniquement l'origine du retour déjà validé par le fournisseur OAuth. Aucun joker ni suppression du contrôle d'origine. Test de régression et observation dans Brave Android.
 
-Le navigateur doit accepter les cookies `Secure` de localhost pour tester le consentement local ; les tests automatiques font l'échange dans le runtime. **Un serveur localhost seul n'est pas accessible à ChatGPT distant.** Ne l'exposez pas par redirection de port du téléphone ou du PC.
+## Validation
 
-## Préparer l'hébergement Cloudflare
+`npm test` : 22 tests Worker et 3 tests Node. OAuth réel PKCE, droits, refus anonyme, contrôle d'origine, cookie, rejeu séquentiel, entrées invalides, stockage durable, connexion WSS et identité appareil, expiration et dédoublonnage.
 
-Cette étape exige un compte et une session Cloudflare autorisés. Aucun compte ni abonnement payant n'est créé par le projet. Vérifier les quotas du compte choisi avant publication. Utiliser un namespace KV **réservé à Speed Car**, jamais un stockage d'un autre projet.
+`scripts/live-proof.mjs` : véritable OAuth et reçu du relais, avec fichier propriétaire privé ; ne teste pas ChatGPT. Export facultatif du jeton dans un fichier privé via `SPEEDCAR_TOKEN_OUT`. `scripts/phone-call.mjs` : essai MCP authentifié sur une commande autorisée, reçu sauvegardé avant émission, aucune reprise automatique. Garder tous les fichiers de jetons hors dépôt.
 
-1. S'authentifier avec Wrangler si nécessaire : `npx wrangler login` ; vérifier le compte avec `npx wrangler whoami`.
-2. Créer le stockage OAuth : `npx wrangler kv namespace create OAUTH_KV`. Reporter son identifiant à la place de `REPLACE_WITH_YOUR_KV_NAMESPACE_ID` dans `wrangler.jsonc`.
-3. Générer le secret propriétaire avec un gestionnaire de mots de passe, puis le saisir dans `npx wrangler secret put OWNER_SETUP_SECRET`. Le garder dans le gestionnaire, jamais dans Git, une URL, une conversation ou les journaux. Les exemples et valeurs trop courts bloquent le service.
-4. Définir `PUBLIC_ORIGIN` avec `npx wrangler secret put PUBLIC_ORIGIN` : origine HTTPS exacte du Worker, sans `/mcp` ni barre finale, par exemple `https://speed-car-relay.VOTRE-SOUS-DOMAINE.workers.dev`.
-5. Publier dans le compte choisi : `npm run deploy`. Si une première publication est nécessaire pour obtenir le sous-domaine avant de définir les variables, le service reste fermé avec un HTTP 503 tant qu'elles manquent.
-6. Exécuter le diagnostic contre l'URL obtenue. Les migrations déclarées créent uniquement le Durable Object de ce projet.
+Les jetons d'accès expirent après 1 h ; renouvellement jusqu'à 30 jours, réauthentification possible. Une rotation du secret propriétaire ne révoque pas les autorisations existantes. Pour interrompre les effets du téléphone immédiatement, arrêter Speed Car sur l'appareil ou retirer/faire tourner son appairage ; pour couper l'accès au serveur, désactiver uniquement ce Worker dans Cloudflare. Ne pas supprimer les stockages sans besoin explicite.
 
-```sh
-npm run diagnostic -- https://speed-car-relay.VOTRE-SOUS-DOMAINE.workers.dev
-```
+## ChatGPT
 
-Le diagnostic retourne un code 0 si configuration, découverte OAuth et refus anonyme sont cohérents ; 1 en cas d'échec ; 2 si l'URL est invalide. `relay_ready: true` signifie **sondes de préparation réussies**, pas OAuth complet, disponibilité vocale ou téléphone commandé.
-
-## Essai réel depuis ChatGPT Android
-
-À réaliser à l'arrêt. L'accès aux MCP personnels et aux écritures dépend du compte et de l'espace ChatGPT ; ne pas déduire cette possibilité de l'accès à Drive.
-
-1. Dans l'interface ChatGPT qui propose l'ajout d'un MCP personnel, connecter `https://VOTRE-RELAIS/mcp` avec OAuth. Le chemin des réglages peut dépendre du compte et de la version du produit.
-2. Sur la page Speed Car, contrôler le client et la destination du retour, puis saisir le secret propriétaire et autoriser. Cette préparation initiale est distincte d'une éventuelle confirmation de chaque action par ChatGPT.
-3. Dans le mode vocal réellement disponible sur l'app Android, demander « teste Speed Car ». Consigner le mode/version, le compte/espace et toute confirmation imposée. Le reçu doit être produit et sa séquence annoncée ; une réponse orale sans reçu ne suffit pas.
-4. Demander le dernier reçu avec `speedcar_status` pour constater la même séquence. L'outil doit dire que seul le relais est testé.
-5. Répéter en données mobiles, Wi-Fi du téléphone coupé et PC éteint. Noter le délai perçu, la nécessité ou non d'un appui à l'écran et l'identifiant/horodatage du reçu.
-
-Si ChatGPT exige une validation à l'écran pour chaque écriture, cette étape ne satisfait pas le besoin mains libres. Ne pas changer les annotations pour éviter cette validation. Identifier la limite exacte avant de choisir une alternative.
-
-## Limites et arrêt
-
-- Secret propriétaire = moyen d'authentification personnel pour cette première étape ; pas de gestion de plusieurs utilisateurs ni MFA. Une évolution vers une identité existante pourra être décidée ensuite.
-- Le consentement de la bibliothèque utilise KV : le rejeu séquentiel est refusé et testé ; deux soumissions simultanées du même navigateur ne sont pas une unicité atomique garantie. Ne pas confondre ce mécanisme avec le dédoublonnage durable d'une future commande physique.
-- L'outil de test peut écrire deux reçus en cas de deux appels ; aucune garantie « exactement une fois ». Les garanties indispensables aux commandes physiques sont à construire avant le volume.
-- Aucun test HyperOS, Bluetooth, écran verrouillé ou redémarrage Android ; aucun contrôle téléphone implémenté.
-- Les jetons de renouvellement ont une durée maximale configurée de 30 jours ; réauthentification possible. Ne pas promettre une connexion éternelle.
-- Changer le secret propriétaire bloque les nouvelles autorisations avec l'ancien secret, **sans révoquer les jetons OAuth déjà émis**. Pour une coupure immédiate, désactiver le Worker ou ses routes dans Cloudflare. La révocation ciblée des autorisations sera à préparer avant les commandes du téléphone.
-- Retour arrière : arrêter le serveur local par Ctrl+C ; pour retirer la publication, désactiver le Worker de ce projet. Ne supprimer son namespace OAuth et son Durable Object qu'après avoir confirmé le besoin ; les autres projets sont indépendants.
-
-Sources de mise en œuvre : bibliothèques installées et verrouillées `@cloudflare/workers-oauth-provider` 1.2.4, `@modelcontextprotocol/server` 2.4.0 ; documentation dans leurs paquets, [consentement Cloudflare](https://github.com/cloudflare/workers-oauth-provider/blob/main/docs/consent-page.md), [SDK MCP v2](https://ts.sdk.modelcontextprotocol.io/v2/). Les sources de plateforme et conditions de revalidation figurent dans l'instruction de conception.
+Installer l'intégration privée avec son URL MCP et OAuth, autoriser les deux droits, puis tester dans une nouvelle conversation. La présence du nom dans le catalogue et une recherche publique vide ne démontrent pas la disponibilité des outils d'une application privée. Un essai depuis le vrai ChatGPT, avec résultat natif, reste la preuve indispensable. Le mode vocal n'est plus une condition bloquante à la demande de l'utilisateur ; il n'est pas déclaré vérifié.

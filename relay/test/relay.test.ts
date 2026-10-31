@@ -26,7 +26,7 @@ async function begin(clientName = 'ChatGPT local integration test') {
   const challenge = btoa(String.fromCharCode(...digest)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const url = new URL(`${origin}/authorize`);
   url.search = new URLSearchParams({ client_id: client.client_id, redirect_uri: 'https://chatgpt.test/callback',
-    response_type: 'code', scope: 'speedcar:test offline_access', state: 'user-request-1',
+    response_type: 'code', scope: 'speedcar:test speedcar:phone offline_access', state: 'user-request-1',
     code_challenge: challenge, code_challenge_method: 'S256', resource: `${origin}/mcp` }).toString();
   const page = await SELF.fetch(url);
   expect(page.status).toBe(200);
@@ -118,6 +118,11 @@ describe('Owner consent', () => {
     expect(flow.page.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
     expect(flow.page.headers.get('cache-control')).toContain('no-store');
     expect(flow.page.headers.get('set-cookie')).toContain('Secure');
+    // Native browser form POSTs may send Origin:null under no-referrer.
+    // same-origin preserves CSRF origin checking and hides cross-site referrers.
+    expect(flow.page.headers.get('referrer-policy')).toBe('same-origin');
+    // Chromium also applies form-action to the OAuth POST's redirect.
+    expect(flow.page.headers.get('content-security-policy')).toContain("form-action 'self' https://chatgpt.test;");
   });
 
   it('does not grant access with a wrong owner secret', async () => {
@@ -193,7 +198,7 @@ describe('MCP test action', () => {
     expect(b.result.structuredContent.receipt.id).not.toBe(a.result.structuredContent.receipt.id);
     const status = await mcp(access_token, 'tools/call', { name: 'speedcar_status', arguments: {} }, 13);
     expect(status.result.structuredContent.last_receipt.id).toBe(b.result.structuredContent.receipt.id);
-    expect(status.result.structuredContent.android_control).toBe('not_implemented');
+    expect(status.result.structuredContent.android_control).toBe('device_link_available');
   });
 
   it('rejects unexpected action parameters without creating a receipt', async () => {

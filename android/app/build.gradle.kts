@@ -10,8 +10,8 @@ android {
         applicationId = "fr.speedcar.app"
         minSdk = 31
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.2.0-local"
+        versionCode = 3
+        versionName = "0.3.1"
         testInstrumentationRunner = "android.test.InstrumentationTestRunner"
     }
     compileOptions {
@@ -28,4 +28,7 @@ android {
     }
 }
 
-dependencies { testImplementation("junit:junit:4.13.2") }
+dependencies {
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    testImplementation("junit:junit:4.13.2")
+}

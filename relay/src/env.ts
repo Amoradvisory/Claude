@@ -1,5 +1,6 @@
 import type { OAuthHelpers } from '@cloudflare/workers-oauth-provider';
 import type { OwnerState } from './owner-state';
+import type { PhoneLink } from './phone-link';
 
 export interface Env {
   OAUTH_KV: KVNamespace;
@@ -7,9 +8,14 @@ export interface Env {
   OWNER_SETUP_SECRET: string;
   PUBLIC_ORIGIN: string;
   OAUTH_PROVIDER: OAuthHelpers;
+  PHONE_LINK: DurableObjectNamespace<PhoneLink>;
+  PHONE_TOKEN_HASH?: string;
+  PHONE_DEVICE_ID?: string;
+  PHONE_MODEL?: string;
 }
 
 export const scope = 'speedcar:test';
+export const phoneScope = 'speedcar:phone';
 export const owner = 'speed-car-owner';
 
 export function configuredOrigin(env: Env): string | undefined {

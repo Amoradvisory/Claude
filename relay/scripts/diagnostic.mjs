@@ -7,8 +7,8 @@ export async function runDiagnostic(address) {
   if (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) throw new Error('HTTPS requis hors localhost');
   if (!['/', '/mcp', ''].includes(url.pathname)) throw new Error('Donnez l’origine du relais ou son URL /mcp');
   const origin = url.origin;
-  const result = { relay_ready: false, stage: 'gate0', voice_test: 'not_observed',
-    android_control: 'not_implemented', checks: {}, errors: [] };
+  const result = { relay_ready: false, stage: 'unknown', voice_test: 'not_observed',
+    android_control: 'not_observed', checks: {}, errors: [] };
   async function request(path, options = {}) {
     return fetch(new URL(path, origin), { ...options, redirect: 'error', signal: AbortSignal.timeout(3000) });
   }
@@ -16,6 +16,11 @@ export async function runDiagnostic(address) {
     const health = await request('/health');
     const state = await health.json();
     result.checks.health_configured = health.status === 200 && state.service === 'speed-car' && state.configured === true;
+    if (result.checks.health_configured) {
+      result.stage = typeof state.stage === 'string' ? state.stage : 'unknown';
+      result.server_version = typeof state.version === 'string' ? state.version : 'unknown';
+      result.android_control = state.android_control === 'available_when_paired' ? 'requires_authenticated_phone_test' : 'not_observed';
+    }
   } catch { result.checks.health_configured = false; result.errors.push('health_unreachable_or_invalid'); }
   try {
     const protectedResponse = await request('/mcp');

@@ -16,6 +16,26 @@ data class VolumeResult(
 )
 
 class MediaVolume(private val audio: AudioManager) {
+    fun decrease(steps: Int = 1): VolumeResult {
+        require(steps in 1..3)
+        val start = SystemClock.elapsedRealtime()
+        val stream = AudioManager.STREAM_MUSIC
+        val before = audio.getStreamVolume(stream)
+        val minimum = audio.getStreamMinVolume(stream)
+        val maximum = audio.getStreamMaxVolume(stream)
+        val target = (before - steps).coerceAtLeast(minimum)
+        val fixed = audio.isVolumeFixed
+        if (!fixed && target < before) audio.setStreamVolume(stream, target, 0)
+        val after = audio.getStreamVolume(stream)
+        val status = when {
+            fixed -> "fixed_volume"
+            target == before && after == before -> "minimum_reached"
+            after == target && after < before -> "verified"
+            else -> "indeterminate"
+        }
+        return VolumeResult(UUID.randomUUID().toString(), before, after, minimum, maximum,
+            target, status, SystemClock.elapsedRealtime() - start)
+    }
     fun increase(ceilingPercent: Int, steps: Int = 1): VolumeResult {
         val start = SystemClock.elapsedRealtime()
         val stream = AudioManager.STREAM_MUSIC

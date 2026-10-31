@@ -3,6 +3,8 @@ package fr.speedcar.app
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -15,6 +17,8 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
 import android.widget.TextView
+import android.provider.Settings
+import android.net.Uri
 import org.json.JSONObject
 
 class MainActivity : Activity() {
@@ -24,6 +28,10 @@ class MainActivity : Activity() {
     private lateinit var result: TextView
     private lateinit var volumeState: TextView
     private lateinit var ceilingLabel: TextView
+    private lateinit var connectionState: TextView
+    private lateinit var connectionButton: Button
+    private lateinit var pairingStore: PairingStore
+    private val linkListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> runOnUiThread { refreshConnection() } }
     private lateinit var audio: AudioManager
     private var ceiling = 60
     private var lastResult = "Aucune action exécutée."
@@ -32,6 +40,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         audio = getSystemService(AudioManager::class.java)
+        pairingStore = PairingStore(this)
+        try { pairingStore.importPending() } catch (_: Exception) { lastResult = "L’appairage n’a pas pu être chargé." }
         ceiling = settings.getInt("ceiling", 60).coerceIn(0, 100)
         lastResult = settings.getString("last_result", lastResult) ?: lastResult
 
@@ -51,9 +61,32 @@ class MainActivity : Activity() {
             setTypeface(typeface, Typeface.BOLD)
             setPadding(0, dp(14), 0, dp(18))
         })
-        page.addView(text("Version locale · commande vocale non connectée", 15f, muted))
+        page.addView(text("Commandes locales et connexion à ChatGPT", 15f, muted))
         page.addView(text("Configure et teste ces boutons à l’arrêt.", 15f, muted).apply {
             setPadding(0, dp(8), 0, dp(22))
+        })
+        connectionState = text("", 16f, muted).apply { setPadding(0, 0, 0, dp(8)) }
+        page.addView(connectionState)
+        connectionButton = button("Activer Speed Car", false) {
+            if (pairingStore.prefs.getBoolean("mode_enabled", false)) {
+                LinkService.stop(this)
+            } else if (pairingStore.read() == null) {
+                record("Appairage requis avant d’activer les commandes à distance.")
+            } else {
+                if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), 73)
+                }
+                pairingStore.prefs.edit().putBoolean("mode_enabled", true).apply()
+                try { LinkService.start(this) } catch (_: Exception) { record("Android a refusé le démarrage. Ouvre Speed Car au premier plan pour reprendre.") }
+            }
+            refreshConnection()
+        }
+        page.addView(connectionButton)
+        page.addView(button("Autoriser l’ouverture de Brave", false) {
+            startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
+        })
+        page.addView(button("Autoriser la vérification de Brave", false) {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:$packageName")))
         })
 
         page.addView(button("Augmenter le volume média", true) {
@@ -120,20 +153,42 @@ class MainActivity : Activity() {
         page.addView(result)
         page.addView(button("Copier le diagnostic", false) {
             val diagnostic = JSONObject().put("app", "Speed Car")
-                .put("version", "0.2.0-local").put("model", Build.MODEL)
+                .put("version", "0.3.1").put("model", Build.MODEL)
                 .put("android", Build.VERSION.RELEASE).put("ceilingPercent", ceiling)
                 .put("mediaVolume", audio.getStreamVolume(AudioManager.STREAM_MUSIC))
-                .put("voice", "not_connected").put("lastResult", lastResult)
+                .put("remoteLink", LinkService.connected).put("lastResult", lastResult)
                 .put("lastVolumeDiagnostic", settings.getString("last_diagnostic", null)).toString(2)
             getSystemService(ClipboardManager::class.java)
                 .setPrimaryClip(ClipData.newPlainText("Diagnostic Speed Car", diagnostic))
         })
         refreshVolume()
+        refreshConnection()
     }
 
     override fun onResume() {
         super.onResume()
         if (::audio.isInitialized && ::volumeState.isInitialized) refreshVolume()
+        if (::pairingStore.isInitialized) pairingStore.prefs.registerOnSharedPreferenceChangeListener(linkListener)
+        if (::pairingStore.isInitialized && pairingStore.prefs.getBoolean("mode_enabled", false) && !LinkService.connected && pairingStore.read() != null) {
+            try { LinkService.start(this) } catch (_: Exception) { record("Ouvre Speed Car au premier plan pour reprendre la connexion.") }
+        }
+        if (::connectionState.isInitialized) refreshConnection()
+    }
+
+    override fun onPause() {
+        if (::pairingStore.isInitialized) pairingStore.prefs.unregisterOnSharedPreferenceChangeListener(linkListener)
+        super.onPause()
+    }
+
+    private fun refreshConnection() {
+        if (!::connectionState.isInitialized) return
+        connectionState.text = when {
+            LinkService.connected -> "Connecté au relais · prêt pour les commandes"
+            pairingStore.read() == null -> "Téléphone à appairer"
+            pairingStore.prefs.getBoolean("mode_enabled", false) -> pairingStore.prefs.getString("link_state", "Connexion en cours")
+            else -> "Connexion arrêtée"
+        }
+        connectionButton.text = if (pairingStore.prefs.getBoolean("mode_enabled", false)) "Arrêter Speed Car" else "Activer Speed Car"
     }
 
     private fun record(value: String) {

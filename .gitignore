@@ -12,3 +12,5 @@ coverage/
 local.properties
 *.keystore
 *.jks
+
+relay/wrangler.production.jsonc

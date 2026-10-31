@@ -13,9 +13,11 @@
   "durable_objects": {
     "bindings": [
       { "name": "OWNER_STATE", "class_name": "OwnerState" }
+      ,{ "name": "PHONE_LINK", "class_name": "PhoneLink" }
     ]
   },
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["OwnerState"] }
+    { "tag": "v1", "new_sqlite_classes": ["OwnerState"] },
+    { "tag": "v2-phone-link", "new_sqlite_classes": ["PhoneLink"] }
   ]
 }
