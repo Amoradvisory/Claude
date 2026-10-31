@@ -1,5 +1,6 @@
 import { SELF, env, runInDurableObject } from 'cloudflare:test';
 import { describe, it, expect, beforeEach } from 'vitest';
+import {capabilities,oldKinds} from '../src/capabilities';
 
 const id = '11111111-1111-4111-8111-111111111111';
 const token = 'test-phone-token-' + 'a'.repeat(48);
@@ -28,7 +29,7 @@ async function connect() {
   const socket = response.webSocket!;
   socket.accept();
   const ready = next(socket, 'ready');
-  socket.send(JSON.stringify({ type: 'hello', deviceId: id, model: '2510ERA8BG' }));
+  socket.send(JSON.stringify({ type: 'hello', deviceId: id, model: '2510ERA8BG',capabilities:[...oldKinds,...capabilities.map(c=>c.kind)] }));
   await ready;
   return socket;
 }
@@ -109,4 +110,10 @@ it('does not reveal a private receipt through the generic status tool without it
 it('rejects concurrent conflicting arguments without dispatching a second effect',async()=>{
  const socket=await connect();let count=0;socket.addEventListener('message',e=>{const v=JSON.parse(e.data);if(v.type==='command'){count++;socket.send(JSON.stringify({type:'result',id:v.id,result:{status:'verified'}}))}});
  const a={id:crypto.randomUUID(),kind:'media_volume_up',args:{steps:1},expiresAt:Date.now()+1500};const outcomes=await Promise.all([link().execute(a),link().execute({...a,args:{steps:2}})]);expect(count).toBe(1);expect(outcomes.some(r=>r.reason==='command_id_conflict')).toBe(true);socket.close();
+});
+
+it('rejects a new capability on an old phone before sending its incompatible TTL',async()=>{
+ const response=await SELF.fetch('https://speedcar.test/device',{headers});const socket=response.webSocket!;socket.accept();const ready=next(socket,'ready');socket.send(JSON.stringify({type:'hello',deviceId:id,model:'2510ERA8BG'}));await ready;
+ let delivered=0;socket.addEventListener('message',e=>{const v=JSON.parse(e.data);if(v.type==='command'){delivered++;socket.send(JSON.stringify({type:'result',id:v.id,result:{status:'rejected',reason:'clock_skew'}}))}});
+ const r=await link().execute({id:crypto.randomUUID(),kind:'get_location',args:{},expiresAt:Date.now()+18000});expect(r.status).toBe('unsupported_capability');expect(delivered).toBe(0);socket.close();
 });

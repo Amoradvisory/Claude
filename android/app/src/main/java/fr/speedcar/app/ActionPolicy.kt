@@ -16,6 +16,10 @@ object ActionPolicy {
  fun volumeTarget(percent:Int,min:Int,max:Int,cap:Int):Int {require(percent in 0..100&&cap in 0..100&&max>=min);return floor(max*minOf(percent,cap)/100.0).toInt().coerceIn(min,max)}
  private fun normalize(s:String)=Normalizer.normalize(s,Normalizer.Form.NFD).replace(Regex("\\p{M}+"),"").lowercase(Locale.ROOT).trim()
  fun apps(query:String,all:List<AppEntry>):List<AppEntry>{val q=normalize(query);val exact=all.filter{normalize(it.label)==q||it.packageName==query};return if(exact.isNotEmpty())exact else all.filter{normalize(it.label).contains(q)||it.packageName.lowercase().contains(q)}}
+ fun notificationFields(title:String,body:String):Pair<String,String> {
+  val whole=notificationText(title+"\n"+body)
+  return if(whole=="[contenu sensible masqué]")whole to whole else notificationText(title) to notificationText(body)
+ }
  fun notificationText(s:String):String {if(Regex("(?i)\\b(otp|code|verification|vérification|password|mot de passe|authentification|security|sécurité)\\b").containsMatchIn(s))return "[contenu sensible masqué]";return s.take(400).replace(Regex("\\b[0-9]{4,8}\\b"),"[code masqué]")}
  fun phoneNumber(raw:String):String {require(raw.length<=40&&Regex("^[+0-9][0-9 ().-]{2,38}$").matches(raw)){"explicit_phone_number_required"};return raw.replace(Regex("[ ().-]"),"")}
 }

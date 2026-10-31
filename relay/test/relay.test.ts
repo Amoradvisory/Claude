@@ -226,3 +226,7 @@ it('refuses private capabilities without additional OAuth consent and returns a 
  const token=await grant();const call=await mcp(token.access_token,'tools/call',{name:'phone_get_location',arguments:{}});const r=call.result.structuredContent;
  expect(r.status).toBe('permission_required');expect(r.required_scope).toBe('speedcar:location');expect(r.command_id).toMatch(/^[a-f0-9-]{36}$/);expect(r.sampled_at).toBeTruthy();expect(r.duration_ms).toBe(0);
 });
+
+it('rejects a non-web URL before attempting delivery',async()=>{
+ const token=await grant();const r=await mcp(token.access_token,'tools/call',{name:'phone_open_url',arguments:{command_id:crypto.randomUUID(),url:'javascript:alert(1)',browser:'Brave'}});expect(Boolean(r.error)||r.result?.isError===true).toBe(true);
+});

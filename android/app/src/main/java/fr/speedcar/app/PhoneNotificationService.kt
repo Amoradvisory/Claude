@@ -16,9 +16,10 @@ class PhoneNotificationService:NotificationListenerService() {
   val rows=activeNotifications.filter{it.postTime>=since&&(target.isBlank()||it.packageName==target)&&it.packageName!=packageName}.sortedByDescending{it.postTime}.take(limit)
   return JSONObject().put("status","verified").put("proof_scope","android_active_notifications").put("notifications",JSONArray(rows.map{n->
    val extras=n.notification.extras
+   val fields=ActionPolicy.notificationFields(extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty(),extras.getCharSequence(Notification.EXTRA_TEXT)?.toString().orEmpty())
    JSONObject().put("key",n.key).put("package",n.packageName).put("posted_at_ms",n.postTime)
-    .put("title",ActionPolicy.notificationText(extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()))
-    .put("text",ActionPolicy.notificationText(extras.getCharSequence(Notification.EXTRA_TEXT)?.toString().orEmpty()))
+    .put("title",fields.first)
+    .put("text",fields.second)
     .put("can_open",n.notification.contentIntent!=null).put("ongoing",n.isOngoing)
   })).put("persistent_content_storage",false)
  }
@@ -27,7 +28,7 @@ class PhoneNotificationService:NotificationListenerService() {
   if(n.packageName==packageName)return JSONObject().put("status","rejected").put("outcome","own_control_notification_protected").put("executed",false)
   return when(args.getString("action")){
    "dismiss"->{if(n.isOngoing)return JSONObject().put("status","rejected").put("outcome","ongoing_notification").put("executed",false);cancelNotification(key);Thread.sleep(150);val absent=activeNotifications.none{it.key==key};JSONObject().put("status",if(absent)"verified" else "executed").put("proof_scope",if(absent)"notification_absence_observed" else "notification_cancel_requested").put("message_sent",false)}
-   "open"->{val intent=n.notification.contentIntent?:return JSONObject().put("status","action_unavailable").put("executed",false);intent.send();JSONObject().put("status","executed").put("proof_scope","notification_content_intent_sent").put("message_sent",false)}
+   "open"->{val intent=n.notification.contentIntent?:return JSONObject().put("status","action_unavailable").put("executed",false);if(!SensitivePolicy.openNotification(intent.isActivity){intent.send()})return JSONObject().put("status","rejected").put("outcome","non_activity_notification_intent_blocked").put("executed",false);JSONObject().put("status","executed").put("proof_scope","notification_content_intent_sent").put("message_sent",false)}
    else->JSONObject().put("status","rejected").put("outcome","unsupported_notification_action").put("executed",false)
   }
  }

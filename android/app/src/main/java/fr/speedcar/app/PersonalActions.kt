@@ -45,15 +45,16 @@ class PersonalActions(private val context:Context) {
   require(text.isNotBlank()&&text.length<=300)
   if(context.getSystemService(AudioManager::class.java).mode!=AudioManager.MODE_NORMAL)return JSONObject().put("status","call_in_progress").put("executed",false)
   val main=Handler(Looper.getMainLooper());val engine=AtomicReference<TextToSpeech?>();val done=CountDownLatch(1);val began=AtomicBoolean(false);val completed=AtomicBoolean(false);val error=AtomicReference<String?>();val cancelled=AtomicBoolean(false);val utterance=UUID.randomUUID().toString()
+  val guard=AudioCallGuard(context.getSystemService(AudioManager::class.java)){cancelled.set(true);engine.get()?.stop();done.countDown()}
   main.post {if(cancelled.get()||System.currentTimeMillis()>=expiry){done.countDown();return@post};val tts=TextToSpeech(context){state->
    val t=engine.get();if(state!=TextToSpeech.SUCCESS||t==null){error.set("tts_initialization_failed");done.countDown()}else if(cancelled.get()||System.currentTimeMillis()>=expiry){done.countDown()}else{
     val lang=t.setLanguage(Locale.FRENCH);if(lang==TextToSpeech.LANG_NOT_SUPPORTED||lang==TextToSpeech.LANG_MISSING_DATA){error.set("tts_language_unavailable");done.countDown()}else{
      t.setOnUtteranceProgressListener(object:UtteranceProgressListener(){override fun onStart(id:String?){if(id==utterance)began.set(true)};override fun onDone(id:String?){if(id==utterance){completed.set(true);done.countDown()}};override fun onError(id:String?){if(id==utterance){error.set("tts_error");done.countDown()}}})
-     if(t.speak(text,TextToSpeech.QUEUE_ADD,Bundle(),utterance)==TextToSpeech.ERROR){error.set("tts_rejected");done.countDown()}
+     if(!guard.start{if(t.speak(text,TextToSpeech.QUEUE_ADD,Bundle(),utterance)==TextToSpeech.ERROR){error.set("tts_rejected");done.countDown()}}){error.set("stopped_for_call");done.countDown()}
     }
    }
   };engine.set(tts)}
-  try{done.await((minOf(expiry,System.currentTimeMillis()+9500)-System.currentTimeMillis()).coerceAtLeast(1),TimeUnit.MILLISECONDS)}finally{cancelled.set(true);main.post{engine.get()?.let{it.stop();it.shutdown()}}}
-  return JSONObject().put("status",if(completed.get())"verified" else if(began.get())"executed" else "unavailable").put("outcome",error.get()?:if(completed.get())"tts_utterance_completed" else "tts_not_completed_before_deadline").put("proof_scope","android_tts_callback").put("playback_started_observed",began.get()).put("utterance_completed_observed",completed.get()).put("acoustic_output_verified",false)
+  try{done.await((minOf(expiry,System.currentTimeMillis()+9500)-System.currentTimeMillis()).coerceAtLeast(1),TimeUnit.MILLISECONDS)}finally{cancelled.set(true);guard.close();main.post{engine.get()?.let{it.stop();it.shutdown()}}}
+  return JSONObject().put("status",if(completed.get())"verified" else if(began.get())"executed" else "unavailable").put("outcome",error.get()?:if(guard.interrupted)"stopped_for_call" else if(completed.get())"tts_utterance_completed" else "tts_not_completed_before_deadline").put("proof_scope","android_tts_callback").put("playback_started_observed",began.get()).put("utterance_completed_observed",completed.get()).put("acoustic_output_verified",false)
  }
 }

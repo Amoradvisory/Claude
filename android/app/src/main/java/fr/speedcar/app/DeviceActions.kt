@@ -49,8 +49,11 @@ class DeviceActions(private val context:Context) {
   if(System.currentTimeMillis()+millis>expiry)return JSONObject().put("status","expired").put("executed",false)
   val audio=context.getSystemService(AudioManager::class.java);if(mode!="vibrate"&&audio.mode!=AudioManager.MODE_NORMAL)return JSONObject().put("status","call_in_progress").put("executed",false)
   val vibrator=context.getSystemService(VibratorManager::class.java).defaultVibrator;val vibrate=mode!="sound"&&vibrator.hasVibrator();val tone=if(mode!="vibrate")RingtoneManager.getRingtone(context,RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)) else null
-  var playing=false
-  try{if(vibrate)vibrator.vibrate(VibrationEffect.createOneShot(millis,VibrationEffect.DEFAULT_AMPLITUDE));tone?.audioAttributes=AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build();tone?.play();playing=tone?.isPlaying==true;Thread.sleep(millis)}finally{if(vibrate)vibrator.cancel();tone?.stop()}
-  return JSONObject().put("status",if(vibrate||tone!=null)"executed" else "signal_unavailable").put("proof_scope","android_signal_request").put("vibration_requested",vibrate).put("sound_playback_observed",playing).put("physical_signal_verified",false).put("stopped",true)
+  var playing=false;var started=false;val finished=CountDownLatch(1)
+  val guard=if(mode!="vibrate")AudioCallGuard(audio){if(vibrate)vibrator.cancel();tone?.stop();finished.countDown()}else null
+  val start={if(vibrate)vibrator.vibrate(VibrationEffect.createOneShot(millis,VibrationEffect.DEFAULT_AMPLITUDE));tone?.audioAttributes=AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT).build();tone?.play();playing=tone?.isPlaying==true;started=true}
+  try{if(guard==null)start()else guard.start(start);if(started)finished.await(millis,TimeUnit.MILLISECONDS)}finally{guard?.close();if(vibrate)vibrator.cancel();tone?.stop()}
+  if(!started)return JSONObject().put("status","call_in_progress").put("executed",false)
+  return JSONObject().put("status",if(vibrate||tone!=null)"executed" else "signal_unavailable").put("proof_scope","android_signal_request").put("outcome",if(guard?.interrupted==true)"stopped_for_call" else "bounded_signal_requested").put("vibration_requested",vibrate).put("sound_playback_observed",playing).put("physical_signal_verified",false).put("stopped",true)
  }
 }

@@ -29,7 +29,7 @@ class NativeIntents(private val context:Context) {
  fun handle(kind:String,args:JSONObject,expiry:Long):JSONObject { return when(kind){
   "list_apps"->list(args)
   "open_app"->openApp(args.getString("app"),expiry)
-  "open_url"->{val url=ActionPolicy.webUrl(args.getString("url"));val m=resolve(args.optString("browser","Brave"));if(m.size!=1)JSONObject().put("status",if(m.isEmpty())"browser_not_found" else "ambiguous_browser").put("executed",false) else launch(Intent(Intent.ACTION_VIEW,Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE).setPackage(m.single().packageName),m.single().packageName,expiry).put("page_url_verified",false)}
+  "open_url"->{val url=try{ActionPolicy.webUrl(args.getString("url"))}catch(_:IllegalArgumentException){return JSONObject().put("status","rejected").put("outcome","invalid_web_url").put("executed",false)};val m=resolve(args.optString("browser","Brave"));if(m.size!=1)JSONObject().put("status",if(m.isEmpty())"browser_not_found" else "ambiguous_browser").put("executed",false) else launch(Intent(Intent.ACTION_VIEW,Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE).setPackage(m.single().packageName),m.single().packageName,expiry).put("page_url_verified",false)}
   "open_maps"->{val intent:Intent
    val hasLat=args.has("latitude");val hasLon=args.has("longitude");require(hasLat==hasLon){"coordinate_pair_required"}
    var lat:Double?=null;var lon:Double?=null

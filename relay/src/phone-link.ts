@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import type { Env } from './env';
-import {kindAllowed,isSensitive,sensitiveReceipt,privateScopeFor} from './capabilities';
+import {kindAllowed,isSensitive,sensitiveReceipt,privateScopeFor,oldKinds} from './capabilities';
 
 export type PhoneKind = string;
 export interface PhoneCommand {
@@ -9,7 +9,7 @@ export interface PhoneCommand {
 interface Entry extends PhoneCommand {
   createdAt: number; status: string; argsHash?:string; result?: Record<string, unknown>;
 }
-interface Attachment { deviceId: string; tokenHash: string; ready: boolean; model?: string }
+interface Attachment { deviceId: string; tokenHash: string; ready: boolean; model?: string; kinds?:string[] }
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 
 export class PhoneLink extends DurableObject<Env> {
@@ -50,7 +50,7 @@ export class PhoneLink extends DurableObject<Env> {
       if (data.deviceId !== a.deviceId || data.model !== (this.env.PHONE_MODEL ?? '2510ERA8BG')) {
         socket.close(1008, 'Device identity mismatch'); return;
       }
-      a.ready = true; a.model = data.model; socket.serializeAttachment(a);
+      a.ready = true; a.model = data.model;a.kinds=Array.isArray(data.capabilities)?data.capabilities.filter((k:unknown)=>typeof k==='string'&&kindAllowed(k)).slice(0,64):oldKinds; socket.serializeAttachment(a);
       await this.ctx.storage.put('last_link', { model: data.model, at: Date.now(), state: 'connected' });
       socket.send(JSON.stringify({ type: 'ready', deviceId: a.deviceId, serverTime: Date.now() }));
       return;
@@ -102,6 +102,8 @@ export class PhoneLink extends DurableObject<Env> {
     if (command.expiresAt <= Date.now()) return { status: 'expired', command_id: command.id };
     const socket = this.activeSocket();
     if (!socket) return { status: 'phone_offline', command_id: command.id, executed: false };
+    const advertised=socket.deserializeAttachment() as Attachment;
+    if(advertised.kinds&&!advertised.kinds.includes(command.kind))return {status:'unsupported_capability',command_id:command.id,executed:false,proof_scope:'device_capability_advertisement'};
     const inserted = await this.ctx.storage.transaction(async storage => {
       if (await storage.get(key)) return false;
       const index = (await storage.get<{ id: string; at: number }[]>('command_index') ?? []);

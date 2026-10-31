@@ -23,9 +23,9 @@ import java.util.concurrent.atomic.AtomicReference
 
 class LocationActions(private val context:Context) {
  companion object {
-  data class Request(val maxAge:Int,val allowLast:Boolean,val expiry:Long,val latch:CountDownLatch=CountDownLatch(1),val result:AtomicReference<JSONObject?> = AtomicReference(null),var cancel:(()->Unit)?=null)
+  data class Request(val maxAge:Int,val allowLast:Boolean,val expiry:Long,val latch:CountDownLatch=CountDownLatch(1),val result:AtomicReference<JSONObject?> = AtomicReference(null),var cancel:(()->Unit)?=null,val lease:OperationLease=OperationLease(expiry))
   val pending=ConcurrentHashMap<String,Request>()
-  fun finish(id:String,result:JSONObject){pending[id]?.let{it.result.compareAndSet(null,result);it.latch.countDown();if(result.optString("status")=="cancelled")it.cancel?.invoke()}}
+  fun finish(id:String,result:JSONObject){pending[id]?.let{val safe=if(result.has("latitude")&&!it.lease.valid())JSONObject().put("status","expired").put("outcome","location_deadline_exceeded") else result;it.result.compareAndSet(null,safe);it.latch.countDown();if(result.optString("status")=="cancelled")it.lease.close()}}
   fun cancelAll(){pending.keys.forEach{finish(it,JSONObject().put("status","cancelled").put("outcome","privacy_revoked"))}}
   fun permitted(c:Context)=c.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED||c.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED
   fun fix(location:Location,requestStarted:Long):JSONObject {
@@ -46,6 +46,6 @@ class LocationActions(private val context:Context) {
   val id=UUID.randomUUID().toString();val request=Request(args.optInt("max_age_seconds",30).coerceIn(0,300),args.optBoolean("allow_last_known",true),minOf(expiry,System.currentTimeMillis()+13500));pending[id]=request
   val main=Handler(Looper.getMainLooper())
   main.post {try{if(System.currentTimeMillis()>=request.expiry)finish(id,JSONObject().put("status","expired")) else context.startActivity(Intent(context,LocationActivity::class.java).putExtra("request_id",id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),ActivityOptions.makeBasic().apply{launchDisplayId=0}.toBundle())}catch(_:Exception){finish(id,JSONObject().put("status","interaction_required").put("outcome","location_activity_not_started"))}}
-  try{val wait=(request.expiry-System.currentTimeMillis()).coerceAtLeast(1);request.latch.await(wait,TimeUnit.MILLISECONDS);return request.result.get()?:JSONObject().put("status","location_timeout").put("outcome","no_fix_observed").put("executed",false)}finally{pending.remove(id)}
+  try{val wait=(request.expiry-System.currentTimeMillis()).coerceAtLeast(1);request.latch.await(wait,TimeUnit.MILLISECONDS);return request.result.get()?:JSONObject().put("status","location_timeout").put("outcome","no_fix_observed").put("executed",false)}finally{pending.remove(id);request.lease.close()}
  }
 }

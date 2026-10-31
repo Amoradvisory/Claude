@@ -31,7 +31,7 @@ try {
   const verifier = randomBytes(48).toString('base64url');
   const state = randomBytes(24).toString('base64url');
   const params = new URLSearchParams({ client_id: client.client_id, redirect_uri: callback,
-    response_type: 'code', scope: 'speedcar:test speedcar:phone offline_access', state,
+    response_type: 'code', scope: process.env.SPEEDCAR_SCOPES ?? 'speedcar:test speedcar:phone offline_access', state,
     code_challenge: createHash('sha256').update(verifier).digest('base64url'),
     code_challenge_method: 'S256', resource: `${origin}/mcp` });
   proof.stage = 'owner_consent'; save();
@@ -56,7 +56,7 @@ try {
   })).json();
   if (!token.access_token || !token.refresh_token) throw Error('OAuth grant incomplete');
   if (process.env.SPEEDCAR_TOKEN_OUT) {
-    writeFileSync(process.env.SPEEDCAR_TOKEN_OUT, JSON.stringify(token), { mode: 0o600 });
+    writeFileSync(process.env.SPEEDCAR_TOKEN_OUT, JSON.stringify({...token,client_id:client.client_id}), { mode: 0o600 });
   }
   proof.oauth_pkce_verified = true;
   let counter = 0;
