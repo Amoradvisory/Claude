@@ -103,7 +103,7 @@ export class PhoneLink extends DurableObject<Env> {
     const socket = this.activeSocket();
     if (!socket) return { status: 'phone_offline', command_id: command.id, executed: false };
     const advertised=socket.deserializeAttachment() as Attachment;
-    if(advertised.kinds&&!advertised.kinds.includes(command.kind))return {status:'unsupported_capability',command_id:command.id,executed:false,proof_scope:'device_capability_advertisement'};
+    if(!(advertised.kinds??oldKinds).includes(command.kind))return {status:'unsupported_capability',command_id:command.id,executed:false,proof_scope:'device_capability_advertisement'};
     const inserted = await this.ctx.storage.transaction(async storage => {
       if (await storage.get(key)) return false;
       const index = (await storage.get<{ id: string; at: number }[]>('command_index') ?? []);

@@ -117,3 +117,9 @@ it('rejects a new capability on an old phone before sending its incompatible TTL
  let delivered=0;socket.addEventListener('message',e=>{const v=JSON.parse(e.data);if(v.type==='command'){delivered++;socket.send(JSON.stringify({type:'result',id:v.id,result:{status:'rejected',reason:'clock_skew'}}))}});
  const r=await link().execute({id:crypto.randomUUID(),kind:'get_location',args:{},expiresAt:Date.now()+18000});expect(r.status).toBe('unsupported_capability');expect(delivered).toBe(0);socket.close();
 });
+
+it('treats sockets retained across deployment without capability metadata as legacy phones',async()=>{
+ const socket=await connect();await runInDurableObject(link(),async(_instance,state)=>{for(const ws of state.getWebSockets()){const a=ws.deserializeAttachment();delete a.kinds;ws.serializeAttachment(a)}});
+ socket.addEventListener('message',e=>{const v=JSON.parse(e.data);if(v.type==='command')socket.send(JSON.stringify({type:'result',id:v.id,result:{status:'rejected',reason:'clock_skew'}}))});
+ const r=await link().execute({id:crypto.randomUUID(),kind:'speak',args:{text:'test'},expiresAt:Date.now()+12000});expect(r.status).toBe('unsupported_capability');socket.close();
+});
