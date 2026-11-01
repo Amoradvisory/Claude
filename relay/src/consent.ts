@@ -44,7 +44,7 @@ export async function consent(request: Request, env: Env): Promise<Response> {
     if (request.method === 'GET') {
       const authRequest = await oauth.parseAuthRequest(request);
       const details = await oauth.describeConsent(authRequest);
-      // This application grants no rights outside the two explicitly supported scopes.
+      // This application grants no rights outside its explicitly supported scopes.
       if (details.scope.some((s) => ![scope, phoneScope, ...sensitiveScopes, 'offline_access'].includes(s))) return new Response('Droit non pris en charge', { status: 400 });
       const transaction = await oauth.beginConsent(authRequest);
       transaction.headers.set('content-type', 'text/html; charset=utf-8');

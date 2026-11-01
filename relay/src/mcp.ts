@@ -4,6 +4,16 @@ import { owner, scope, phoneScope, type Env } from './env';
 import type { PhoneKind } from './phone-link';
 import {capabilities, ttlFor} from './capabilities';
 
+async function boundedRpc(request:Request):Promise<any> {
+  const reader=request.clone().body?.getReader();if(!reader)return;
+  let size=0;const chunks:Uint8Array[]=[];
+  try {while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;
+    if(size>16384){void reader.cancel().catch(()=>{});throw new RangeError('MCP request too large');}chunks.push(value);
+  }} finally {reader.releaseLock();}
+  const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
+  try{return JSON.parse(new TextDecoder().decode(bytes));}catch{return;}
+}
+
 export const mcpApi = {
   async fetch(request, env, context) {
     const authenticated = context as ExecutionContext & { props?: { owner?: string }; auth?: { scope: string[] } };
@@ -12,9 +22,24 @@ export const mcpApi = {
       status: 403, headers: { 'www-authenticate': `Bearer error="insufficient_scope", scope="${scope}"` },
     });
     if (new URL(request.url).pathname !== '/mcp') return new Response('Introuvable', { status: 404 });
+    // MCP 2025-11-25 step-up: a tool result alone cannot initiate new OAuth consent.
+    // No rights are granted here; a fresh owner-authorized flow is still required.
+    if(request.method==='POST'&&request.headers.get('content-type')?.includes('application/json')) {
+      let rpc;try{rpc=await boundedRpc(request);}catch{return new Response('Requête MCP trop grande',{status:413});}
+      if(rpc?.method==='tools/call') {
+        const capability=capabilities.find(c=>c.name===rpc.params?.name);
+        const required=capability?.scope??(capability?.kind==='open_maps'&&rpc.params?.arguments?.show_current_location===true?'speedcar:location':undefined);
+        if(required&&!authenticated.auth?.scope.includes(required)) {
+          const scopes=[...new Set([scope,phoneScope,...(authenticated.auth?.scope??[]),required])].join(' ');
+          return new Response('Une nouvelle autorisation propriétaire est nécessaire. Aucune commande envoyée.',{
+            status:403,headers:{'www-authenticate':`Bearer error="insufficient_scope", scope="${scopes}", resource_metadata="${env.PUBLIC_ORIGIN}/.well-known/oauth-protected-resource/mcp"`},
+          });
+        }
+      }
+    }
     const state = env.OWNER_STATE.getByName(owner);
     const handler = createMcpHandler(() => {
-      const server = new McpServer({ name: 'speed-car', version: '2.0.0' }, {
+      const server = new McpServer({ name: 'speed-car', version: '2.0.1' }, {
         instructions: 'Speed Car pilote uniquement le téléphone appairé. Un appel spécialisé par demande. GPS : phone_get_location, Google Maps : phone_open_maps, navigation : phone_navigate. Nom d’application : phone_open_app. Ne jamais inventer maison, un destinataire ou des coordonnées. Les données sensibles sont temporaires ; permission_required exige une autorisation volontaire, jamais un contournement. Un intent de navigation ne prouve pas un itinéraire calculé. Actions composées : appels successifs avec reçus, aucun effet incertain rejoué. Lecture d’écran/notifications seulement sur demande explicite. Pour une hausse du volume, phone_media_volume_up ; pour YouTube dans Brave, phone_open_youtube_brave. Générer un nouvel UUID command_id pour chaque demande volontaire et conserver le même en cas de reprise de transport. Si le résultat est indeterminate, lire phone_command_status avec ce même ID, sans rejouer avec un nouvel ID. Confirmer seulement les faits du reçu : un index média ne prouve pas le niveau acoustique ; Brave repris ne prouve pas le chargement de YouTube. Le test du relais ne prouve pas une action du téléphone.',
       });
       server.registerTool('speedcar_test_action', {

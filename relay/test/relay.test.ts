@@ -14,7 +14,7 @@ beforeEach(async () => {
   });
 });
 
-async function begin(clientName = 'ChatGPT local integration test') {
+async function begin(clientName = 'ChatGPT local integration test',scopes='speedcar:test speedcar:phone offline_access') {
   const response = await SELF.fetch(`${origin}/oauth/register`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ client_name: clientName, redirect_uris: ['https://chatgpt.test/callback'],
@@ -26,7 +26,7 @@ async function begin(clientName = 'ChatGPT local integration test') {
   const challenge = btoa(String.fromCharCode(...digest)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const url = new URL(`${origin}/authorize`);
   url.search = new URLSearchParams({ client_id: client.client_id, redirect_uri: 'https://chatgpt.test/callback',
-    response_type: 'code', scope: 'speedcar:test speedcar:phone offline_access', state: 'user-request-1',
+    response_type: 'code', scope: scopes, state: 'user-request-1',
     code_challenge: challenge, code_challenge_method: 'S256', resource: `${origin}/mcp` }).toString();
   const page = await SELF.fetch(url);
   expect(page.status).toBe(200);
@@ -43,8 +43,8 @@ async function approve(flow: Awaited<ReturnType<typeof begin>>, value = secret, 
     body: new URLSearchParams({ handle: flow.handle, owner_secret: value, decision: 'approve' }).toString() });
 }
 
-async function grant() {
-  const flow = await begin();
+async function grant(scopes?:string) {
+  const flow = await begin(undefined,scopes);
   const consent = await approve(flow);
   expect(consent.status).toBe(302);
   const callback = new URL(consent.headers.get('location')!);
@@ -222,11 +222,28 @@ describe('Speed Car 2 assistant contracts', () => {
   });
 });
 
-it('refuses private capabilities without additional OAuth consent and returns a full receipt', async () => {
- const token=await grant();const call=await mcp(token.access_token,'tools/call',{name:'phone_get_location',arguments:{}});const r=call.result.structuredContent;
- expect(r.status).toBe('permission_required');expect(r.required_scope).toBe('speedcar:location');expect(r.command_id).toMatch(/^[a-f0-9-]{36}$/);expect(r.sampled_at).toBeTruthy();expect(r.duration_ms).toBe(0);
+it('challenges a private capability with incremental OAuth consent before dispatch', async () => {
+ const token=await grant();
+ const response=await SELF.fetch(`${origin}/mcp`,{method:'POST',headers:{authorization:`Bearer ${token.access_token}`,'content-type':'application/json',accept:'application/json, text/event-stream'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name:'phone_get_location',arguments:{}}})});
+ expect(response.status).toBe(403);
+ const challenge=response.headers.get('www-authenticate')!;
+ expect(challenge).toContain('error="insufficient_scope"');
+ expect(challenge.match(/scope="([^"]+)"/)![1].split(' ')).toEqual(expect.arrayContaining(['speedcar:test','speedcar:phone','speedcar:location']));
+ expect(challenge).not.toContain('speedcar:notifications');
+ const metadata=challenge.match(/resource_metadata="([^"]+)"/)![1];
+ expect((await SELF.fetch(metadata)).status).toBe(200);
+ const next=await mcp(token.access_token,'tools/call',{name:'speedcar_status',arguments:{}});
+ expect(next.result.structuredContent.proof_scope).toBe('relay_storage_only');
 });
 
 it('rejects a non-web URL before attempting delivery',async()=>{
  const token=await grant();const r=await mcp(token.access_token,'tools/call',{name:'phone_open_url',arguments:{command_id:crypto.randomUUID(),url:'javascript:alert(1)',browser:'Brave'}});expect(Boolean(r.error)||r.result?.isError===true).toBe(true);
+});
+
+it('accepts an explicitly granted private scope while preserving the original tools',async()=>{
+ const token=await grant('speedcar:test speedcar:phone speedcar:location offline_access');
+ const result=await mcp(token.access_token,'tools/call',{name:'phone_get_location',arguments:{}});
+ expect(result.result.structuredContent.status).toBe('phone_offline');
+ const old=await mcp(token.access_token,'tools/call',{name:'speedcar_status',arguments:{}});
+ expect(old.result.structuredContent.proof_scope).toBe('relay_storage_only');
 });
