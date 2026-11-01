@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-11-01T19:35:20.501Z",
-  "status": "prepared_tested_not_deployed",
+  "updated_at": "2026-11-01T21:29:54.000Z",
+  "status": "grouped_consent_granted_and_gps_verified_from_chatgpt",
   "branch": "codex/speed-car-2",
   "code_commit": "cdcf33148ef988cc6181138909b5fa239f6e3782",
   "public_before": {
@@ -121,15 +121,220 @@
     "location_permission_granted": false
   },
   "deployment": {
-    "status": "pending_owner_cloudflare_auth",
-    "production_tokens_changed": false,
-    "reported_previous_version": "6ac2d557-9022-4957-afe5-a11c295ca4e5",
-    "previous_version_live_verified": false
+    "status": "deployed_and_live_verified",
+    "version_id": "3734ee22-7fd0-405b-ab28-8afbc7889ed1",
+    "deployment_id": "e6076eca-1c86-449c-b504-c748f28ba76a",
+    "created_on": "2026-11-01T19:57:51.780602Z",
+    "traffic_percent": 100,
+    "rollback_version_id": "6ac2d557-9022-4957-afe5-a11c295ca4e5",
+    "rollback_baseline_deployment_id": "5a824990-eebe-40de-8827-230782ae2228",
+    "rollback_baseline_live_verified": true,
+    "rollback_script": ".superpowers/oauth-grouped/rollback.ps1",
+    "bindings_identical_before_after": true,
+    "migration_tag": "v2-phone-link",
+    "new_migration": false,
+    "production_tokens_modified": false,
+    "secrets_read_or_replaced": false,
+    "credential_storage": "encrypted_file_with_key_in_Windows_Credential_Manager",
+    "durable_object_update_mode": "deferred 300s"
   },
   "chatgpt_grouped_consent": {
-    "status": "pending"
+    "status": "verified",
+    "path": "Settings / Paramètres → Plugins → Speed Car → … → Reconnecter",
+    "in_chat_reconnect_2026_11_01_21_29_paris": "Cette application ne fournit actuellement pas d’URL de configuration du navigateur.",
+    "consent_page_observed_2026_11_01_21_40_paris": {
+      "original_request_scope": "speedcar:test",
+      "proposed_scopes": [
+        "speedcar:test",
+        "speedcar:phone",
+        "speedcar:location",
+        "speedcar:notifications",
+        "speedcar:screen"
+      ]
+    },
+    "expired_attempt": {
+      "opened_paris": "21:40",
+      "submitted_paris": "21:56",
+      "response": "Autorisation invalide, expirée ou déjà utilisée. Recommencez depuis ChatGPT.",
+      "interpretation": "owner code accepted (wrong code returns 'Autorisation refusée' first); consent transaction TTL 600 s exceeded"
+    },
+    "owner_code": "retrieved and pasted by Amor himself on his own computer; never read, displayed or typed by an agent",
+    "grant_read_only_check": {
+      "source": "OAUTH_KV key listing and grant records via wrangler, read-only, no token values",
+      "client_id": "https://chatgpt.com/oauth/client.json",
+      "created_at": "2026-11-01T21:12:02Z",
+      "scopes": [
+        "speedcar:test",
+        "speedcar:phone",
+        "speedcar:location",
+        "speedcar:notifications",
+        "speedcar:screen"
+      ],
+      "refresh_token_present": true,
+      "expires_at": "2026-12-01T21:12:08Z"
+    },
+    "previous_chatgpt_grant_preserved": {
+      "created_at": "2026-10-31T11:57:06Z",
+      "scopes": [
+        "speedcar:test",
+        "speedcar:phone",
+        "offline_access"
+      ]
+    }
   },
   "chatgpt_location": {
-    "status": "pending_owner_location_activation_and_oauth"
+    "status": "verified",
+    "conversation": "https://chatgpt.com/c/6ae7a0ce-fd5c-83eb-a349-35356fc89c8c",
+    "owner_activations": [
+      "Android location on",
+      "Speed Car switch 'Autoriser les demandes de position ponctuelle'",
+      "Android location permission while in use",
+      "overlay: 'Autoriser l’ouverture des applications (superposition)'"
+    ],
+    "first_attempt": {
+      "tool": "phone_get_location",
+      "status": "permission_required",
+      "missing": "overlay (draw over other apps)",
+      "command_id": "c48d6a30-284e-48a9-82c3-49d13c751006",
+      "reread": "phone_command_status, same UUID"
+    },
+    "result": {
+      "tool": "phone_get_location",
+      "status": "verified",
+      "age_ms": 37,
+      "accuracy_m": 9.54,
+      "provider": "Android GPS",
+      "mock": false,
+      "reread": "phone_command_status, same UUID, verified"
+    },
+    "speedcar_status": "verified, 8 receipts",
+    "reported": "ChatGPT answer pasted by Amor at 22:27 Europe/Paris",
+    "coordinates": "not recorded"
+  },
+  "public_after": {
+    "at": "2026-11-01T19:58:32.828Z",
+    "provenance": "unauthenticated_public_http",
+    "responses": {
+      "/health": {
+        "status": 200,
+        "www_authenticate": null,
+        "body": {
+          "service": "speed-car",
+          "version": "2.0.1",
+          "configured": true,
+          "stage": "device-link",
+          "android_control": "available_when_paired",
+          "voice_test": "not_observed"
+        }
+      },
+      "/mcp": {
+        "status": 401,
+        "www_authenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://speed-car-relay.speed-car-relay.workers.dev/.well-known/oauth-protected-resource/mcp\", scope=\"speedcar:test speedcar:phone speedcar:location speedcar:notifications speedcar:screen\"",
+        "body": ""
+      },
+      "/.well-known/oauth-protected-resource": {
+        "status": 404,
+        "www_authenticate": null,
+        "body": ""
+      },
+      "/.well-known/oauth-protected-resource/mcp": {
+        "status": 200,
+        "www_authenticate": null,
+        "body": {
+          "resource": "https://speed-car-relay.speed-car-relay.workers.dev/mcp",
+          "authorization_servers": [
+            "https://speed-car-relay.speed-car-relay.workers.dev"
+          ],
+          "scopes_supported": [
+            "speedcar:test",
+            "speedcar:phone",
+            "speedcar:location",
+            "speedcar:notifications",
+            "speedcar:screen"
+          ],
+          "bearer_methods_supported": [
+            "header"
+          ]
+        }
+      },
+      "/.well-known/oauth-authorization-server": {
+        "status": 200,
+        "www_authenticate": null,
+        "body": {
+          "issuer": "https://speed-car-relay.speed-car-relay.workers.dev",
+          "authorization_endpoint": "https://speed-car-relay.speed-car-relay.workers.dev/authorize",
+          "token_endpoint": "https://speed-car-relay.speed-car-relay.workers.dev/oauth/token",
+          "protected_resources": [
+            "https://speed-car-relay.speed-car-relay.workers.dev/mcp"
+          ],
+          "registration_endpoint": "https://speed-car-relay.speed-car-relay.workers.dev/oauth/register",
+          "scopes_supported": [
+            "speedcar:test",
+            "speedcar:phone",
+            "speedcar:location",
+            "speedcar:notifications",
+            "speedcar:screen",
+            "offline_access"
+          ],
+          "response_types_supported": [
+            "code"
+          ],
+          "response_modes_supported": [
+            "query"
+          ],
+          "grant_types_supported": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "token_endpoint_auth_methods_supported": [
+            "client_secret_basic",
+            "client_secret_post",
+            "none",
+            "private_key_jwt"
+          ],
+          "token_endpoint_auth_signing_alg_values_supported": [
+            "RS256",
+            "ES256"
+          ],
+          "revocation_endpoint": "https://speed-car-relay.speed-car-relay.workers.dev/oauth/token",
+          "code_challenge_methods_supported": [
+            "S256"
+          ],
+          "authorization_response_iss_parameter_supported": true,
+          "client_id_metadata_document_supported": true
+        }
+      }
+    }
+  },
+  "existing_connection_after_deploy": {
+    "provenance": "Codex connected Speed Car tool, existing connection, not browser ChatGPT",
+    "command_id": "b7d69b72-8a2f-457b-b8c8-6552790aa56c",
+    "at": "2026-11-01T19:58:30.801Z",
+    "status": "verified",
+    "outcome": "verified",
+    "proof_scope": "android_state",
+    "duration_ms": 20,
+    "version": "2.0.1",
+    "location_enabled": false,
+    "location_permission_granted": false
+  },
+  "chatgpt_base_after_deploy": {
+    "provenance": "real ChatGPT browser conversation; then independent Codex receipt re-read without replay",
+    "conversation_url": "https://chatgpt.com/c/6ae78b6a-5500-83eb-a45a-bf185010caec",
+    "command_id": "4a8d0b4d-bdf8-49cb-8904-73329d45efc6",
+    "at": "2026-11-01T19:59:44.424Z",
+    "status": "verified",
+    "outcome": "verified",
+    "proof_scope": "android_state",
+    "duration_ms": 24,
+    "version": "2.0.1",
+    "receipt_independently_re_read": true,
+    "location_enabled": false,
+    "location_permission_granted": false
+  },
+  "follow_up": {
+    "by": "Claude Code",
+    "reason": "Codex usage limit reached after the second deployment",
+    "changes": "documentation only; no code, secret or deployment change"
   }
 }
