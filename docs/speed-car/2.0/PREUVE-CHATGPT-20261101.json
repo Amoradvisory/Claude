@@ -1,0 +1,45 @@
+{
+  "type": "real_chatgpt_conversation",
+  "url": "https://chatgpt.com/c/6ae736f9-749c-83ed-b847-c88a5e2d4a5c",
+  "app_id": "asdk_app_6ae5a96e8a488191a89c47d2d513495b",
+  "at": "2026-11-01T12:57:00Z",
+  "native_version": "2.0.0",
+  "worker_version": "2.0.0",
+  "tools_refreshed_in_chatgpt_settings": true,
+  "receipts": [
+    {
+      "status": "verified",
+      "proof_scope": "android_battery_broadcast",
+      "battery_percent": 18,
+      "charge_state": 3,
+      "power_sources": [],
+      "temperature_celsius": 30.4,
+      "voltage_millivolts": 3536,
+      "command_id": "d83ebc67-9aa2-4a3d-92c7-91d45c302bf4",
+      "model": "2510ERA8BG",
+      "duration_ms": 11,
+      "sampled_at": "2026-11-01T12:57:12.067424Z",
+      "outcome": "verified",
+      "received_at": "2026-11-01T12:57:11.207Z"
+    },
+    {
+      "status": "verified",
+      "proof_scope": "android_connectivity_state",
+      "network_available": true,
+      "internet_validated": true,
+      "wifi_transport": true,
+      "mobile_transport": false,
+      "vpn_transport": true,
+      "wifi_enabled": true,
+      "bluetooth_enabled": null,
+      "bluetooth_permission_granted": false,
+      "command_id": "bb5a2a0c-5ee6-4f3a-9f82-b7e50b219c45",
+      "model": "2510ERA8BG",
+      "duration_ms": 9,
+      "sampled_at": "2026-11-01T12:57:12.442970Z",
+      "outcome": "verified",
+      "received_at": "2026-11-01T12:57:11.574Z"
+    }
+  ],
+  "cross_read_via_connected_plugin": true
+}

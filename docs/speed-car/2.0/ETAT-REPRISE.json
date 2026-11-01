@@ -1,0 +1,38 @@
+{
+  "updated_at": "2026-11-01T13:17:40.631837+00:00",
+  "status": "partially_functional",
+  "native_version": "2.0.1",
+  "native_version_code": 5,
+  "relay_version": "2.0.1",
+  "deployment_id": "6ac2d557-9022-4957-afe5-a11c295ca4e5",
+  "app_id": "asdk_app_6ae5a96e8a488191a89c47d2d513495b",
+  "mcp_tools_count": 34,
+  "last_phone_state": "offline",
+  "tailscale_last_seen": "2026-11-01T13:00:00.1Z",
+  "last_read_permissions": {
+    "location_enabled": false,
+    "location_permission_granted": false,
+    "overlay_allowed": false,
+    "notifications_enabled": false,
+    "screen_enabled": false,
+    "usage_access_allowed": true,
+    "battery_optimization_exempt": true
+  },
+  "next_steps": [
+    "Rétablir Internet et ouvrir Speed Car ; Activer Speed Car si nécessaire ; attendre Connecté au relais.",
+    "Accorder volontairement localisation ponctuelle + permission Android + superposition.",
+    "Consentement OAuth localisation dans ChatGPT réel ; reprise automatique du challenge à vérifier.",
+    "Tester GPS avec âge/précision/fournisseur, Maps puis navigation ; ne pas inventer Maison.",
+    "Accès médias et caméra/torche puis tests bénins ; ensuite mobile/veille/reboot contrôlés."
+  ],
+  "local_tests": {
+    "android_jvm": 37,
+    "worker": 31,
+    "node": 3,
+    "android_lint": "pass",
+    "apk_build": "pass",
+    "typescript": "pass"
+  },
+  "chatgpt_proof": "PREUVE-CHATGPT-20261101.json",
+  "source_branch": "codex/speed-car-2"
+}
