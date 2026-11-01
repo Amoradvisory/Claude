@@ -27,7 +27,11 @@ export default {
       apiRoute: '/mcp', apiHandler: mcpApi,
       defaultHandler: { fetch: (req, bindings) => new URL(req.url).pathname === '/authorize' ? consent(req, bindings) : new Response('Introuvable', { status: 404 }) },
       authorizeEndpoint: '/authorize', tokenEndpoint: '/oauth/token', clientRegistrationEndpoint: '/oauth/register',
-      scopesSupported: [scope, phoneScope, ...sensitiveScopes, 'offline_access'], requiredScopes: [scope, phoneScope],
+      scopesSupported: [scope, phoneScope, ...sensitiveScopes, 'offline_access'],
+      // Owner-chosen grouped consent: in provider 1.2.4 requiredScopes advertises
+      // both resource metadata and the initial 401; per-tool checks still enforce
+      // the actual grant, so existing base tokens remain usable and limited.
+      requiredScopes: [scope, phoneScope, ...sensitiveScopes],
       clientIdMetadataDocumentEnabled: true,
       accessTokenTTL: 3600, refreshTokenTTL: 2_592_000,
       resourceMetadata: { resource: `${origin}/mcp`, authorization_servers: [origin] },

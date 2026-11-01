@@ -25,16 +25,28 @@ async function boundedForm(request: Request): Promise<string | undefined> {
 }
 
 function page(details: ConsentDescription, handle: string): string {
+  const descriptions: Record<string, [string, string]> = {
+    [scope]: ['Test du relais', 'Tester le relais et relire ses reçus.'],
+    [phoneScope]: ['Commandes du téléphone', 'État, volume, applications, navigation, médias et préparation de partage sur le téléphone appairé.'],
+    'speedcar:location': ['Localisation ponctuelle', 'Obtenir une position à votre demande ; aucun suivi permanent.'],
+    'speedcar:notifications': ['Notifications', 'Lire les notifications filtrées et ouvrir ou retirer une notification choisie ; aucun envoi de réponse.'],
+    'speedcar:screen': ['Contexte d’écran', 'Lire le contexte sémantique des applications autorisées et effectuer les gestes limités Défilement / Retour ; aucun accès aux mots de passe.'],
+    offline_access: ['Connexion renouvelable', 'Renouveler cette connexion sans ressaisir le code à chaque expiration.'],
+  };
   return `<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>Speed Car — autorisation initiale</title><h1>Connecter Speed Car</h1>
 <p>Client : <strong>${escape(details.clientName)}</strong>. ${details.clientDomain ? `Domaine : ${escape(details.clientDomain)}.` : 'Nom déclaré par le client, non vérifié.'}</p>
 <p>Destination de l'autorisation : <strong>${escape(details.redirectHost)}</strong>.</p>
 ${details.redirectIsLoopback ? '<p>Attention : cette destination est une application locale sur votre ordinateur.</p>' : ''}
 <p>Droits demandés : ${details.scope.map(escape).join(', ')}.</p>
-<p>Speed Car peut tester le relais et, si le droit speedcar:phone est demandé, envoyer les commandes autorisées au téléphone appairé : état, volume, applications, navigation, médias et préparation de partage. Les droits speedcar:location, speedcar:notifications et speedcar:screen autorisent respectivement la localisation ponctuelle, les notifications et le contexte d’écran, seulement si les autorisations Android correspondantes ont été activées volontairement.</p>
+<ul>${details.scope.map((s) => {
+    const [label, description] = descriptions[s];
+    return `<li><strong>${escape(label)}</strong> (<code>${escape(s)}</code>) : ${escape(description)}</li>`;
+  }).join('')}</ul>
+<p>Les accès privés nécessitent toujours votre demande explicite, les autorisations Android et les interrupteurs locaux correspondants. Ce consentement ne les active pas : vous les accordez vous-même dans Speed Car et Android, et pouvez les désactiver à tout moment.</p>
 <p>Autorisez seulement une connexion que vous venez de demander dans ChatGPT. Effectuez cette préparation à l'arrêt.</p>
 <form method="post" action="/authorize"><input type="hidden" name="handle" value="${escape(handle)}">
-<label>Secret propriétaire <input type="password" name="owner_secret" autocomplete="current-password" maxlength="256" required></label>
+<label>Code propriétaire — à saisir vous-même <input type="password" name="owner_secret" autocomplete="current-password" maxlength="256" required></label>
 <p><button name="decision" value="approve">Autoriser</button> <button name="decision" value="deny" formnovalidate>Refuser</button></p></form></html>`;
 }
 
@@ -80,6 +92,8 @@ export async function consent(request: Request, env: Env): Promise<Response> {
     const { redirectTo } = await oauth.completeAuthorization({
       request: approved.request, userId: owner, metadata: { label: 'Speed Car personnel' },
       scope: approved.request.scope, props: { owner },
+      // Explicit reconnection must not revoke or widen an existing base grant.
+      revokeExistingGrants: false,
     });
     approved.headers.set('location', redirectTo);
     return new Response(null, { status: 302, headers: approved.headers });

@@ -14,14 +14,15 @@ beforeEach(async () => {
   });
 });
 
-async function begin(clientName = 'ChatGPT local integration test',scopes='speedcar:test speedcar:phone offline_access') {
+async function begin(clientName = 'ChatGPT local integration test',scopes='speedcar:test speedcar:phone offline_access',clientId?: string) {
   const response = await SELF.fetch(`${origin}/oauth/register`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ client_name: clientName, redirect_uris: ['https://chatgpt.test/callback'],
       token_endpoint_auth_method: 'none', grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'] }),
   });
   expect(response.status).toBe(201);
-  const client = await response.json() as {client_id: string};
+  const registered = await response.json() as {client_id: string};
+  const client = clientId ? { client_id: clientId } : registered;
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
   const challenge = btoa(String.fromCharCode(...digest)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const url = new URL(`${origin}/authorize`);
@@ -43,8 +44,8 @@ async function approve(flow: Awaited<ReturnType<typeof begin>>, value = secret, 
     body: new URLSearchParams({ handle: flow.handle, owner_secret: value, decision: 'approve' }).toString() });
 }
 
-async function grant(scopes?:string) {
-  const flow = await begin(undefined,scopes);
+async function grant(scopes?:string,clientId?:string) {
+  const flow = await begin(undefined,scopes,clientId);
   const consent = await approve(flow);
   expect(consent.status).toBe(302);
   const callback = new URL(consent.headers.get('location')!);
@@ -56,7 +57,7 @@ async function grant(scopes?:string) {
       code: callback.searchParams.get('code')!, code_verifier: verifier, redirect_uri: 'https://chatgpt.test/callback',
       resource: `${origin}/mcp` }).toString() });
   expect(response.status).toBe(200);
-  return await response.json() as { access_token: string; refresh_token: string; scope: string };
+  return { ...await response.json() as { access_token: string; refresh_token: string; scope: string }, client_id: flow.client.client_id };
 }
 
 async function mcp(token: string, method: string, params: Record<string, unknown> = {}, id = 1) {
@@ -93,6 +94,16 @@ describe('MCP authentication boundary', () => {
     const resource = await (await SELF.fetch(metadata)).json() as any;
     expect(resource.resource).toBe(`${origin}/mcp`);
     expect(resource.authorization_servers).toEqual([origin]);
+    // Missing optional resource scopes makes a client without a scope challenge
+    // request only base rights again on an explicit reconnect.
+    expect(resource.scopes_supported).toEqual([
+      'speedcar:test', 'speedcar:phone', 'speedcar:location',
+      'speedcar:notifications', 'speedcar:screen',
+    ]);
+    const alias = await (await SELF.fetch(`${origin}/.well-known/oauth-protected-resource/mcp`)).json() as any;
+    expect(alias.scopes_supported).toEqual(resource.scopes_supported);
+    // A narrower scope here would override the resource's discovery scopes.
+    expect(challenge.headers.get('www-authenticate')!.match(/scope="([^"]+)"/)![1].split(' ')).toEqual(resource.scopes_supported);
     const oauth = await (await SELF.fetch(`${origin}/.well-known/oauth-authorization-server`)).json() as any;
     expect(oauth.code_challenge_methods_supported).toContain('S256');
     expect(oauth.token_endpoint).toBe(`${origin}/oauth/token`);
@@ -109,6 +120,18 @@ describe('MCP authentication boundary', () => {
 });
 
 describe('Owner consent', () => {
+  it('explains each requested private right before the owner approves grouped consent', async () => {
+    const flow = await begin(undefined, 'speedcar:test speedcar:phone speedcar:location speedcar:notifications speedcar:screen offline_access');
+    for (const label of ['Localisation ponctuelle', 'Notifications', 'Contexte d’écran']) {
+      expect(flow.html).toContain(`<strong>${label}</strong>`);
+    }
+    expect(flow.html).toContain('interrupteurs locaux');
+    expect(flow.html).toContain('demande explicite');
+    expect(flow.html).toContain('Code propriétaire');
+    expect(flow.html).toContain('type="password" name="owner_secret"');
+    expect(flow.html).not.toContain(secret);
+  });
+
   it('escapes untrusted client metadata and prevents framing or caching', async () => {
     const flow = await begin('<script>alert(1)</script>');
     expect(flow.html).not.toContain('<script>alert(1)</script>');
@@ -127,6 +150,33 @@ describe('Owner consent', () => {
 
   it('does not grant access with a wrong owner secret', async () => {
     expect((await approve(await begin(), 'wrong')).status).toBe(403);
+  });
+
+  it('keeps an existing base grant usable and limited after same-client grouped reauthorization', async () => {
+    const base = await grant();
+    const grouped = await grant('speedcar:test speedcar:phone speedcar:location speedcar:notifications speedcar:screen offline_access', base.client_id);
+    expect(grouped.scope.split(' ').sort()).toEqual([
+      'offline_access', 'speedcar:location', 'speedcar:notifications',
+      'speedcar:phone', 'speedcar:screen', 'speedcar:test',
+    ]);
+    for (const name of ['phone_get_location', 'phone_get_notifications', 'phone_get_screen_context']) {
+      const result = await mcp(grouped.access_token, 'tools/call', { name, arguments: {} });
+      expect(result.result.structuredContent.status).toBe('phone_offline');
+    }
+    const oldStatus = await mcp(base.access_token, 'tools/call', { name: 'speedcar_status', arguments: {} });
+    expect(oldStatus.result.structuredContent.proof_scope).toBe('relay_storage_only');
+    const refresh = await SELF.fetch(`${origin}/oauth/token`, { method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'refresh_token', client_id: base.client_id,
+        refresh_token: base.refresh_token, resource: `${origin}/mcp` }).toString() });
+    expect(refresh.status).toBe(200);
+    const renewed = await refresh.json() as { access_token: string; scope: string };
+    expect(renewed.scope.split(' ').sort()).toEqual(['offline_access', 'speedcar:phone', 'speedcar:test']);
+    const privateCall = await SELF.fetch(`${origin}/mcp`, { method: 'POST', headers: {
+      authorization: `Bearer ${renewed.access_token}`, 'content-type': 'application/json',
+    }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'phone_get_location', arguments: {} } }) });
+    expect(privateCall.status).toBe(403);
+    expect(privateCall.headers.get('www-authenticate')).toContain('insufficient_scope');
   });
 
   it('refuses cross-origin consent even with the right secret', async () => {
