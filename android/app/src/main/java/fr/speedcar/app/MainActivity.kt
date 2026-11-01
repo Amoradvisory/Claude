@@ -83,10 +83,10 @@ class MainActivity : Activity() {
         }
         page.addView(connectionButton)
         page.addView(button("Fonctions Speed Car 2.0 et autorisations", false) { startActivity(Intent(this, AssistantSettingsActivity::class.java)) })
-        page.addView(button("Autoriser l’ouverture de Brave", false) {
+        page.addView(button("Autoriser l’ouverture des applications", false) {
             startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
         })
-        page.addView(button("Autoriser la vérification de Brave", false) {
+        page.addView(button("Autoriser la vérification des applications", false) {
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:$packageName")))
         })
 
@@ -154,7 +154,7 @@ class MainActivity : Activity() {
         page.addView(result)
         page.addView(button("Copier le diagnostic", false) {
             val diagnostic = JSONObject().put("app", "Speed Car")
-                .put("version", "2.0.0").put("model", Build.MODEL)
+                .put("version", BuildConfig.VERSION_NAME).put("model", Build.MODEL)
                 .put("android", Build.VERSION.RELEASE).put("ceilingPercent", ceiling)
                 .put("mediaVolume", audio.getStreamVolume(AudioManager.STREAM_MUSIC))
                 .put("remoteLink", LinkService.connected).put("lastResult", lastResult)
@@ -168,6 +168,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        AppCatalog.request(this)
         if (::audio.isInitialized && ::volumeState.isInitialized) refreshVolume()
         if (::pairingStore.isInitialized) pairingStore.prefs.registerOnSharedPreferenceChangeListener(linkListener)
         if (::pairingStore.isInitialized && pairingStore.prefs.getBoolean("mode_enabled", false) && !LinkService.connected && pairingStore.read() != null) {

@@ -94,7 +94,7 @@ class LinkService : Service() {
             .header("Authorization", "Bearer ${p.token}").header("X-Speedcar-Device", p.deviceId).build()
         socket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                webSocket.send(JSONObject().put("type", "hello").put("deviceId", p.deviceId).put("model", Build.MODEL).put("version","2.0.0").put("capabilities",org.json.JSONArray(listOf("status","media_volume_up","media_volume_down","youtube_brave")+NativeCatalog.kinds)).toString())
+                webSocket.send(JSONObject().put("type", "hello").put("deviceId", p.deviceId).put("model", Build.MODEL).put("version",BuildConfig.VERSION_NAME).put("capabilities",org.json.JSONArray(listOf("status","media_volume_up","media_volume_down","youtube_brave")+NativeCatalog.kinds)).toString())
             }
             override fun onMessage(webSocket: WebSocket, text: String) {
                 if (text.length > 16384 || webSocket !== socket) return

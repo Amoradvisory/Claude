@@ -21,15 +21,29 @@ import java.util.concurrent.atomic.AtomicReference
 
 class NativeIntents(private val context:Context) {
  companion object { const val MAPS="com.google.android.apps.maps" }
- fun apps():List<AppEntry> = context.packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),0)
-  .map{AppEntry(it.activityInfo.packageName,it.loadLabel(context.packageManager).toString())}.distinctBy{it.packageName}.sortedBy{it.label.lowercase()}
- fun resolve(query:String):List<AppEntry> = ActionPolicy.apps(query,apps())
- fun list(args:JSONObject):JSONObject { val query=args.optString("query");val matches=if(query.isBlank())apps() else resolve(query);return JSONObject().put("status","verified").put("proof_scope","android_launcher_packages").put("total_matches",matches.size).put("apps",JSONArray(matches.take(args.optInt("limit",40).coerceIn(1,80)).map{JSONObject().put("package",it.packageName).put("name",it.label)})) }
- fun openApp(query:String,expiry:Long):JSONObject {val m=resolve(query);if(m.size!=1)return JSONObject().put("status",if(m.isEmpty())"app_not_found" else "ambiguous_app").put("executed",false).put("candidates",JSONArray(m.take(10).map{JSONObject().put("package",it.packageName).put("name",it.label)}));val i=context.packageManager.getLaunchIntentForPackage(m[0].packageName)?:return JSONObject().put("status","app_not_launchable").put("executed",false);return launch(i,m[0].packageName,expiry)}
+ private fun unavailable(state:String)=JSONObject().put("status",state).put("executed",false).put("proof_scope","no_effect").put("retry_after_ms",if(state=="catalog_loading")1500 else 5000)
+ fun list(args:JSONObject):JSONObject {
+  val view=AppCatalog.request(context);if(view.state!="ready")return unavailable(view.state)
+  val query=args.optString("query");val matches=if(query.isBlank())view.items else ActionPolicy.apps(query,view.items)
+  return JSONObject().put("status","verified").put("proof_scope","android_launcher_packages_cached_5min").put("total_matches",matches.size).put("apps",JSONArray(matches.take(args.optInt("limit",40).coerceIn(1,80)).map{JSONObject().put("package",it.packageName).put("name",it.label)}))
+ }
+ private fun resolve(query:String):Pair<List<AppEntry>,String> {
+  val known=mapOf("spotify" to "com.spotify.music","google maps" to MAPS,"maps" to MAPS,"whatsapp" to "com.whatsapp","brave" to "com.brave.browser","chrome" to "com.android.chrome","youtube" to "com.google.android.youtube")
+  val pkg=known[query.trim().lowercase()]?:query.trim().takeIf{Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+").matches(it)}
+  if(pkg!=null)return (if(context.packageManager.getLaunchIntentForPackage(pkg)!=null)listOf(AppEntry(pkg,pkg))else emptyList<AppEntry>()) to "ready"
+  val view=AppCatalog.request(context);return ActionPolicy.apps(query,view.items) to view.state
+ }
+ fun openApp(query:String,expiry:Long):JSONObject {
+  if(!Settings.canDrawOverlays(context))return JSONObject().put("status","permission_required").put("permission","draw_over_other_apps").put("executed",false)
+  val (m,state)=resolve(query);if(state!="ready")return unavailable(state)
+  if(m.size!=1)return JSONObject().put("status",if(m.isEmpty())"app_not_found" else "ambiguous_app").put("executed",false).put("candidates",JSONArray(m.take(10).map{JSONObject().put("package",it.packageName).put("name",it.label)}))
+  val i=context.packageManager.getLaunchIntentForPackage(m[0].packageName)?:return JSONObject().put("status","app_not_launchable").put("executed",false)
+  return launch(i,m[0].packageName,expiry)
+ }
  fun handle(kind:String,args:JSONObject,expiry:Long):JSONObject { return when(kind){
   "list_apps"->list(args)
   "open_app"->openApp(args.getString("app"),expiry)
-  "open_url"->{val url=try{ActionPolicy.webUrl(args.getString("url"))}catch(_:IllegalArgumentException){return JSONObject().put("status","rejected").put("outcome","invalid_web_url").put("executed",false)};val m=resolve(args.optString("browser","Brave"));if(m.size!=1)JSONObject().put("status",if(m.isEmpty())"browser_not_found" else "ambiguous_browser").put("executed",false) else launch(Intent(Intent.ACTION_VIEW,Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE).setPackage(m.single().packageName),m.single().packageName,expiry).put("page_url_verified",false)}
+  "open_url"->{val url=try{ActionPolicy.webUrl(args.getString("url"))}catch(_:IllegalArgumentException){return JSONObject().put("status","rejected").put("outcome","invalid_web_url").put("executed",false)};val (m,state)=resolve(args.optString("browser","Brave"));if(state!="ready")return unavailable(state);if(m.size!=1)JSONObject().put("status",if(m.isEmpty())"browser_not_found" else "ambiguous_browser").put("executed",false) else launch(Intent(Intent.ACTION_VIEW,Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE).setPackage(m.single().packageName),m.single().packageName,expiry).put("page_url_verified",false)}
   "open_maps"->{val intent:Intent
    val hasLat=args.has("latitude");val hasLon=args.has("longitude");require(hasLat==hasLon){"coordinate_pair_required"}
    var lat:Double?=null;var lon:Double?=null

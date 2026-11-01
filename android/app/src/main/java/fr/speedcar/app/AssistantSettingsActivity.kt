@@ -16,6 +16,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
 
 class AssistantSettingsActivity:Activity() {
  private val prefs by lazy{getSharedPreferences("speed-car-private",0)}
@@ -29,6 +30,7 @@ class AssistantSettingsActivity:Activity() {
   text("Chaque capacité est distincte et révocable. Aucun GPS continu, aucun microphone et aucune capture d’écran ne sont activés.")
   status=TextView(this).apply{textSize=15f};page.addView(status)
   toggle("Autoriser les demandes de position ponctuelle","location_enabled"){enabled->if(!enabled)LocationActions.cancelAll() else if(!LocationActions.permitted(this))requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION),201)}
+  button("Autoriser l’ouverture des applications (superposition)"){startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:$packageName")))}
   button("Autorisation Android de localisation"){requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION),201)}
   text("La localisation utilise une activité visible et s’arrête après une acquisition ou un délai court. Écran verrouillé : une interaction peut être nécessaire.")
   button("Autoriser la lampe torche"){requestPermissions(arrayOf(Manifest.permission.CAMERA),202)}
@@ -39,7 +41,9 @@ class AssistantSettingsActivity:Activity() {
   toggle("Autoriser le contexte d’écran à ma demande","screen_enabled")
   button("Activer le service d’accessibilité Speed Car"){startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))}
   button("Choisir les applications pour le contexte d’écran"){
-   val apps=NativeIntents(this).apps().filter{!SensitivePolicy.protectedPackage(it.packageName)};val allowed=prefs.getStringSet("screen_apps",emptySet()).orEmpty().toMutableSet();val checked=apps.map{allowed.contains(it.packageName)}.toBooleanArray()
+   val view=AppCatalog.request(this)
+   if(view.state!="ready"){Toast.makeText(this,"Préparation de la liste… réessayez dans quelques secondes.",Toast.LENGTH_SHORT).show();return@button}
+   val apps=view.items.filter{!SensitivePolicy.protectedPackage(it.packageName)};val allowed=prefs.getStringSet("screen_apps",emptySet()).orEmpty().toMutableSet();val checked=apps.map{allowed.contains(it.packageName)}.toBooleanArray()
    AlertDialog.Builder(this).setTitle("Applications autorisées").setMultiChoiceItems(apps.map{it.label}.toTypedArray(),checked){_,index,value->if(value)allowed.add(apps[index].packageName)else allowed.remove(apps[index].packageName)}.setPositiveButton("Enregistrer"){_,_->prefs.edit().putStringSet("screen_apps",allowed).apply()}.setNegativeButton("Annuler",null).show()
   }
   text("Contexte sémantique uniquement. Défilement et Retour sont disponibles sur un instantané récent. Les clics, saisies et validations sensibles ne sont pas automatisés.")
@@ -53,7 +57,7 @@ class AssistantSettingsActivity:Activity() {
   button("Ouvrir les autorisations de Speed Car"){startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:$packageName")))}
   refresh()
  }
- override fun onResume(){super.onResume();if(::status.isInitialized)refresh()}
+ override fun onResume(){super.onResume();AppCatalog.request(this);if(::status.isInitialized)refresh()}
  override fun onRequestPermissionsResult(requestCode:Int,permissions:Array<out String>,grantResults:IntArray){super.onRequestPermissionsResult(requestCode,permissions,grantResults);refresh()}
  private fun refresh(){if(!::status.isInitialized)return;val notifications=getSystemService(NotificationManager::class.java).isNotificationListenerAccessGranted(ComponentName(this,PhoneNotificationService::class.java));val camera=checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;status.text="GPS Android : ${LocationActions.permitted(this)} · Torche : $camera\nSessions médias : $notifications · Accessibilité : ${ScreenAccessService.instance!=null}\nOuverture d’applications : ${Settings.canDrawOverlays(this)}"}
 }

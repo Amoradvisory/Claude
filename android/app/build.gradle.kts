@@ -6,12 +6,13 @@ plugins {
 android {
     namespace = "fr.speedcar.app"
     compileSdk = 35
+    buildFeatures { buildConfig = true }
     defaultConfig {
         applicationId = "fr.speedcar.app"
         minSdk = 31
         targetSdk = 35
-        versionCode = 4
-        versionName = "2.0.0"
+        versionCode = 5
+        versionName = "2.0.1"
         testInstrumentationRunner = "android.test.InstrumentationTestRunner"
     }
     compileOptions {
