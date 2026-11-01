@@ -1,0 +1,12 @@
+{
+  "version": "2.0.1",
+  "version_code": 5,
+  "source_commit": "697b1644b785f733bbd295ad6fae92a4fff57918",
+  "sha256": "a4636a217aa6b913d06c015b26684d0b1cea40874fd8725370ed9912fc71f32a",
+  "bytes": 855980,
+  "signer_sha256": "0a11ba52371276d2a3d5cdef98b87971c2d609921c240e8040dca20f0c69fc94",
+  "build_type": "debug",
+  "android_permissions": "Granted voluntarily in Speed Car / Android settings; no sensitive grants automated",
+  "provisioning": "Device token not embedded; existing pairing retained on update",
+  "built_at_utc": "2026-11-01T12:56:34.079697+00:00"
+}
