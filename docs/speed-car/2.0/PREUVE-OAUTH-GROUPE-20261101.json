@@ -1,0 +1,135 @@
+{
+  "updated_at": "2026-11-01T19:35:20.501Z",
+  "status": "prepared_tested_not_deployed",
+  "branch": "codex/speed-car-2",
+  "code_commit": "cdcf33148ef988cc6181138909b5fa239f6e3782",
+  "public_before": {
+    "at": "2026-11-01T19:32:02.274Z",
+    "provenance": "unauthenticated_public_http",
+    "responses": {
+      "/health": {
+        "status": 200,
+        "www_authenticate": null,
+        "body": {
+          "service": "speed-car",
+          "version": "2.0.1",
+          "configured": true,
+          "stage": "device-link",
+          "android_control": "available_when_paired",
+          "voice_test": "not_observed"
+        }
+      },
+      "/mcp": {
+        "status": 401,
+        "www_authenticate": "Bearer realm=\"OAuth\", resource_metadata=\"https://speed-car-relay.speed-car-relay.workers.dev/.well-known/oauth-protected-resource/mcp\", scope=\"speedcar:test speedcar:phone\"",
+        "body": ""
+      },
+      "/.well-known/oauth-protected-resource": {
+        "status": 404,
+        "www_authenticate": null,
+        "body": ""
+      },
+      "/.well-known/oauth-protected-resource/mcp": {
+        "status": 200,
+        "www_authenticate": null,
+        "body": {
+          "resource": "https://speed-car-relay.speed-car-relay.workers.dev/mcp",
+          "authorization_servers": [
+            "https://speed-car-relay.speed-car-relay.workers.dev"
+          ],
+          "scopes_supported": [
+            "speedcar:test",
+            "speedcar:phone"
+          ],
+          "bearer_methods_supported": [
+            "header"
+          ]
+        }
+      },
+      "/.well-known/oauth-authorization-server": {
+        "status": 200,
+        "www_authenticate": null,
+        "body": {
+          "issuer": "https://speed-car-relay.speed-car-relay.workers.dev",
+          "authorization_endpoint": "https://speed-car-relay.speed-car-relay.workers.dev/authorize",
+          "token_endpoint": "https://speed-car-relay.speed-car-relay.workers.dev/oauth/token",
+          "protected_resources": [
+            "https://speed-car-relay.speed-car-relay.workers.dev/mcp"
+          ],
+          "registration_endpoint": "https://speed-car-relay.speed-car-relay.workers.dev/oauth/register",
+          "scopes_supported": [
+            "speedcar:test",
+            "speedcar:phone",
+            "speedcar:location",
+            "speedcar:notifications",
+            "speedcar:screen",
+            "offline_access"
+          ],
+          "response_types_supported": [
+            "code"
+          ],
+          "response_modes_supported": [
+            "query"
+          ],
+          "grant_types_supported": [
+            "authorization_code",
+            "refresh_token"
+          ],
+          "token_endpoint_auth_methods_supported": [
+            "client_secret_basic",
+            "client_secret_post",
+            "none",
+            "private_key_jwt"
+          ],
+          "token_endpoint_auth_signing_alg_values_supported": [
+            "RS256",
+            "ES256"
+          ],
+          "revocation_endpoint": "https://speed-car-relay.speed-car-relay.workers.dev/oauth/token",
+          "code_challenge_methods_supported": [
+            "S256"
+          ],
+          "authorization_response_iss_parameter_supported": true,
+          "client_id_metadata_document_supported": true
+        }
+      }
+    }
+  },
+  "automated": {
+    "provenance": "Windows local clone; locked dependencies; workerd via Vitest",
+    "red": [
+      "missing private resource scopes",
+      "unreadable grouped consent",
+      "same-client base access token revoked with HTTP401"
+    ],
+    "worker_tests": 33,
+    "node_tests": 3,
+    "typescript": "pass",
+    "build_dry_run": "pass",
+    "review": "independent read-only review; no blocking findings"
+  },
+  "existing_connection": {
+    "provenance": "Codex connected Speed Car tool; not browser ChatGPT",
+    "at": "2026-11-01T19:34:14.503Z",
+    "command_id": "513c7bf2-c31a-401e-9528-e09523e805dd",
+    "status": "verified",
+    "outcome": "verified",
+    "proof_scope": "android_state",
+    "duration_ms": 92,
+    "version": "2.0.1",
+    "location_enabled": false,
+    "location_permission_granted": false
+  },
+  "deployment": {
+    "status": "pending_owner_cloudflare_auth",
+    "production_tokens_changed": false,
+    "reported_previous_version": "6ac2d557-9022-4957-afe5-a11c295ca4e5",
+    "previous_version_live_verified": false
+  },
+  "chatgpt_grouped_consent": {
+    "status": "pending"
+  },
+  "chatgpt_location": {
+    "status": "pending_owner_location_activation_and_oauth"
+  }
+}

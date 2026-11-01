@@ -20,15 +20,15 @@
 ## Review focus
 
 - Initial 401 scope takes priority over resource discovery; inspect the actual header.
-- Both well-known resource URLs must agree, excluding offline_access.
+- Path-specific resource metadata and the initial 401 must advertise the five resource scopes, excluding offline_access. The root well-known URL may return 404.
 - Consent must describe only requested rights and retain CSRF/owner-code protection.
 - Base token and refresh must continue to work without implicit widening.
 - Reconnect must show private scopes before owner approval; location coordinates are not persisted in evidence.
 
 ## Tasks
 
-- [ ] Add integration assertions for resource scope discovery and readable grouped consent; run RED.
-- [ ] Expand advertised requiredScopes and improve per-scope consent descriptions; run Worker/Node tests, TypeScript and build.
+- [x] Add integration assertions for resource scope discovery and readable grouped consent; run RED (three expected failures, including same-client token revocation).
+- [x] Expand advertised requiredScopes and improve per-scope consent descriptions; run Worker/Node tests, TypeScript and build (33 Worker + 3 Node, check and dry-run passed; independent review clear).
 - [ ] Review diff independently, save deployment baseline/rollback, deploy existing Worker with unchanged bindings/secrets.
 - [ ] Verify live metadata and existing connection, then prompt Amor to reconnect and activate GPS. Verify through an actual ChatGPT conversation; record any blocking condition honestly.
 - [ ] Update UTILISATION.md and report with source/provenance, results and rollback; publish branch and preserve local audit additions.
