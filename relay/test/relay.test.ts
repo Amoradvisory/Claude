@@ -1,32 +1,51 @@
 import { SELF, env, runInDurableObject } from 'cloudflare:test';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import worker from '../src/index';
 import { consent } from '../src/consent';
 
 const origin = 'https://speedcar.test';
 const secret = 'local-test-only-owner-secret-not-for-deployment-0123456789';
 const verifier = 'a'.repeat(64);
+const chatgptClient = 'https://chatgpt.com/oauth/client.json';
+const chatgptCallback = 'https://chatgpt.com/connector_platform_oauth_redirect';
+const nativeFetch = globalThis.fetch.bind(globalThis);
 
 beforeEach(async () => {
+  // Only the external client document is substituted; the OAuth/PKCE flow,
+  // stored consent, grant and access tokens all use the real provider.
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+    const url = new URL(new Request(input, init).url);
+    if (['https://chatgpt.com/oauth/client.json', 'https://chatgpt.com.evil.test/oauth/client.json'].includes(url.href)) {
+      return Response.json({
+      client_id: url.href, client_name: 'ChatGPT',
+      redirect_uris: [chatgptCallback, 'https://chatgpt.com/other-callback'],
+      token_endpoint_auth_method: 'none', grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'],
+      }, { headers: { 'cache-control': 'no-store' } });
+    }
+    return nativeFetch(input, init);
+  });
   // Storage is persistent across requests; each case starts with a fresh owner state.
   await runInDurableObject((env as any).OWNER_STATE.getByName('speed-car-owner'), async (_instance, state) => {
     await state.storage.deleteAll();
   });
 });
+afterEach(() => vi.restoreAllMocks());
 
-async function begin(clientName = 'ChatGPT local integration test',scopes='speedcar:test speedcar:phone offline_access',clientId?: string) {
-  const response = await SELF.fetch(`${origin}/oauth/register`, {
+async function begin(clientName = 'ChatGPT local integration test',scopes='speedcar:test speedcar:phone offline_access',clientId?: string,redirectUri='https://chatgpt.test/callback') {
+  let client = { client_id: clientId! };
+  if (!clientId) {
+    const response = await SELF.fetch(`${origin}/oauth/register`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ client_name: clientName, redirect_uris: ['https://chatgpt.test/callback'],
+    body: JSON.stringify({ client_name: clientName, redirect_uris: [redirectUri],
       token_endpoint_auth_method: 'none', grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'] }),
-  });
-  expect(response.status).toBe(201);
-  const registered = await response.json() as {client_id: string};
-  const client = clientId ? { client_id: clientId } : registered;
+    });
+    expect(response.status).toBe(201);
+    client = await response.json() as {client_id: string};
+  }
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
   const challenge = btoa(String.fromCharCode(...digest)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const url = new URL(`${origin}/authorize`);
-  url.search = new URLSearchParams({ client_id: client.client_id, redirect_uri: 'https://chatgpt.test/callback',
+  url.search = new URLSearchParams({ client_id: client.client_id, redirect_uri: redirectUri,
     response_type: 'code', scope: scopes, state: 'user-request-1',
     code_challenge: challenge, code_challenge_method: 'S256', resource: `${origin}/mcp` }).toString();
   const page = await SELF.fetch(url);
@@ -35,7 +54,7 @@ async function begin(clientName = 'ChatGPT local integration test',scopes='speed
   const handle = html.match(/name="handle" value="([^"]+)"/)?.[1];
   expect(handle).toBeTruthy();
   const cookie = page.headers.get('set-cookie')?.split(';')[0] ?? '';
-  return { client, html, page, cookie, handle: handle! };
+  return { client, html, page, cookie, handle: handle!, authorizeUrl: url.toString() };
 }
 
 async function approve(flow: Awaited<ReturnType<typeof begin>>, value = secret, requestOrigin = origin, cookie = flow.cookie) {
@@ -44,18 +63,18 @@ async function approve(flow: Awaited<ReturnType<typeof begin>>, value = secret, 
     body: new URLSearchParams({ handle: flow.handle, owner_secret: value, decision: 'approve' }).toString() });
 }
 
-async function grant(scopes?:string,clientId?:string) {
-  const flow = await begin(undefined,scopes,clientId);
+async function grant(scopes?:string,clientId?:string,redirectUri='https://chatgpt.test/callback',tokenScope?:string) {
+  const flow = await begin(undefined,scopes,clientId,redirectUri);
   const consent = await approve(flow);
   expect(consent.status).toBe(302);
   const callback = new URL(consent.headers.get('location')!);
-  expect(callback.origin).toBe('https://chatgpt.test');
+  expect(callback.origin).toBe(new URL(redirectUri).origin);
   expect(callback.searchParams.get('state')).toBe('user-request-1');
   const response = await SELF.fetch(`${origin}/oauth/token`, { method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ grant_type: 'authorization_code', client_id: flow.client.client_id,
-      code: callback.searchParams.get('code')!, code_verifier: verifier, redirect_uri: 'https://chatgpt.test/callback',
-      resource: `${origin}/mcp` }).toString() });
+      code: callback.searchParams.get('code')!, code_verifier: verifier, redirect_uri: redirectUri,
+      resource: `${origin}/mcp`, ...(tokenScope === undefined ? {} : { scope: tokenScope }) }).toString() });
   expect(response.status).toBe(200);
   return { ...await response.json() as { access_token: string; refresh_token: string; scope: string }, client_id: flow.client.client_id };
 }
@@ -120,6 +139,66 @@ describe('MCP authentication boundary', () => {
 });
 
 describe('Owner consent', () => {
+  it('shows and grants all five owner-approved rights when the real ChatGPT client pins test only', async () => {
+    const flow = await begin(undefined, 'speedcar:test', chatgptClient, chatgptCallback);
+    for (const label of ['Localisation ponctuelle', 'Notifications', 'Contexte d’écran']) {
+      expect(flow.html).toContain(`<strong>${label}</strong>`);
+    }
+    expect(flow.html).toContain('consentement groupé');
+    expect(flow.html).toContain('Droits proposés pour cette connexion');
+    const token = await grant('speedcar:test', chatgptClient, chatgptCallback);
+    expect(token.scope.split(' ').sort()).toEqual([
+      'speedcar:location', 'speedcar:notifications', 'speedcar:phone', 'speedcar:screen', 'speedcar:test',
+    ]);
+    for (const name of ['phone_get_location', 'phone_get_notifications', 'phone_get_screen_context']) {
+      const result = await mcp(token.access_token, 'tools/call', { name, arguments: {} });
+      expect(result.result.structuredContent.status).toBe('phone_offline');
+    }
+  });
+
+  it.each(['speedcar:phone', 'speedcar:test speedcar:phone'])('groups a validated ChatGPT base request: %s', async (requested) => {
+    const token = await grant(requested, chatgptClient, chatgptCallback);
+    expect(token.scope.split(' ').sort()).toEqual([
+      'speedcar:location', 'speedcar:notifications', 'speedcar:phone', 'speedcar:screen', 'speedcar:test',
+    ]);
+  });
+
+  it('preserves explicitly requested offline access without adding it to every request', async () => {
+    const token = await grant('speedcar:test offline_access', chatgptClient, chatgptCallback);
+    expect(token.scope.split(' ').sort()).toEqual([
+      'offline_access', 'speedcar:location', 'speedcar:notifications', 'speedcar:phone', 'speedcar:screen', 'speedcar:test',
+    ]);
+  });
+
+  it.each([
+    ['https://chatgpt.com.evil.test/oauth/client.json', chatgptCallback],
+    [chatgptClient, 'https://chatgpt.com/other-callback'],
+  ])('does not group a different client or callback: %s %s', async (client, callback) => {
+    const token = await grant('speedcar:test', client, callback);
+    expect(token.scope).toBe('speedcar:test');
+  });
+
+  it('respects explicit token-exchange downscoping after grouped owner consent', async () => {
+    const token = await grant('speedcar:test', chatgptClient, chatgptCallback, 'speedcar:test');
+    expect(token.scope).toBe('speedcar:test');
+    const response = await SELF.fetch(`${origin}/mcp`, { method: 'POST', headers: {
+      authorization: `Bearer ${token.access_token}`, 'content-type': 'application/json',
+    }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'phone_get_location', arguments: {} } }) });
+    expect(response.status).toBe(403);
+  });
+
+  it.each([
+    ['resource', 'https://other.test/mcp'],
+    ['redirect_uri', 'https://evil.test/callback'],
+    ['code_challenge_method', 'unsupported'],
+    ['scope', 'speedcar:admin'],
+  ])('validates the original ChatGPT request before offering grouped rights: %s', async (key, value) => {
+    const flow = await begin(undefined, 'speedcar:test', chatgptClient, chatgptCallback);
+    const invalid = new URL(flow.authorizeUrl);
+    invalid.searchParams.set(key, value);
+    expect((await SELF.fetch(invalid)).status).toBe(400);
+  });
+
   it('explains each requested private right before the owner approves grouped consent', async () => {
     const flow = await begin(undefined, 'speedcar:test speedcar:phone speedcar:location speedcar:notifications speedcar:screen offline_access');
     for (const label of ['Localisation ponctuelle', 'Notifications', 'Contexte d’écran']) {

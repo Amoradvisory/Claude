@@ -24,7 +24,7 @@ async function boundedForm(request: Request): Promise<string | undefined> {
   return new TextDecoder().decode(bytes);
 }
 
-function page(details: ConsentDescription, handle: string): string {
+function page(details: ConsentDescription, handle: string, originalScopes?: readonly string[]): string {
   const descriptions: Record<string, [string, string]> = {
     [scope]: ['Test du relais', 'Tester le relais et relire ses reçus.'],
     [phoneScope]: ['Commandes du téléphone', 'État, volume, applications, navigation, médias et préparation de partage sur le téléphone appairé.'],
@@ -38,7 +38,9 @@ function page(details: ConsentDescription, handle: string): string {
 <p>Client : <strong>${escape(details.clientName)}</strong>. ${details.clientDomain ? `Domaine : ${escape(details.clientDomain)}.` : 'Nom déclaré par le client, non vérifié.'}</p>
 <p>Destination de l'autorisation : <strong>${escape(details.redirectHost)}</strong>.</p>
 ${details.redirectIsLoopback ? '<p>Attention : cette destination est une application locale sur votre ordinateur.</p>' : ''}
-<p>Droits demandés : ${details.scope.map(escape).join(', ')}.</p>
+${originalScopes ? `<p>ChatGPT a demandé initialement : ${originalScopes.map(escape).join(', ')}.</p>
+<p>Pour ce profil personnel, Speed Car propose un consentement groupé aux cinq droits Speed Car, avec le renouvellement de connexion si demandé. Ils seront accordés uniquement après la saisie de votre code et votre validation ; aucune ancienne autorisation ne sera modifiée.</p>` : ''}
+<p>Droits proposés pour cette connexion : ${details.scope.map(escape).join(', ')}.</p>
 <ul>${details.scope.map((s) => {
     const [label, description] = descriptions[s];
     return `<li><strong>${escape(label)}</strong> (<code>${escape(s)}</code>) : ${escape(description)}</li>`;
@@ -47,7 +49,7 @@ ${details.redirectIsLoopback ? '<p>Attention : cette destination est une applica
 <p>Autorisez seulement une connexion que vous venez de demander dans ChatGPT. Effectuez cette préparation à l'arrêt.</p>
 <form method="post" action="/authorize"><input type="hidden" name="handle" value="${escape(handle)}">
 <label>Code propriétaire — à saisir vous-même <input type="password" name="owner_secret" autocomplete="current-password" maxlength="256" required></label>
-<p><button name="decision" value="approve">Autoriser</button> <button name="decision" value="deny" formnovalidate>Refuser</button></p></form></html>`;
+<p><button name="decision" value="approve">Autoriser ces droits</button> <button name="decision" value="deny" formnovalidate>Refuser</button></p></form></html>`;
 }
 
 export async function consent(request: Request, env: Env): Promise<Response> {
@@ -55,10 +57,21 @@ export async function consent(request: Request, env: Env): Promise<Response> {
   try {
     if (request.method === 'GET') {
       const authRequest = await oauth.parseAuthRequest(request);
-      const details = await oauth.describeConsent(authRequest);
       // This application grants no rights outside its explicitly supported scopes.
-      if (details.scope.some((s) => ![scope, phoneScope, ...sensitiveScopes, 'offline_access'].includes(s))) return new Response('Droit non pris en charge', { status: 400 });
-      const transaction = await oauth.beginConsent(authRequest);
+      if (authRequest.scope.some((s) => ![scope, phoneScope, ...sensitiveScopes, 'offline_access'].includes(s))) return new Response('Droit non pris en charge', { status: 400 });
+      // ChatGPT's Settings reconnect can pin speedcar:test despite discovery.
+      // Apply the owner's grouped policy only to the validated official client,
+      // callback and resource, BEFORE displaying and storing a NEW consent.
+      // Never expand a POST or an existing grant/consent transaction.
+      const grouped = authRequest.clientId === 'https://chatgpt.com/oauth/client.json'
+        && authRequest.redirectUri === 'https://chatgpt.com/connector_platform_oauth_redirect'
+        && authRequest.resource === `${env.PUBLIC_ORIGIN}/mcp`
+        && authRequest.scope.some((s) => s === scope || s === phoneScope);
+      const consentRequest = grouped ? {
+        ...authRequest, scope: [...new Set([scope, phoneScope, ...sensitiveScopes, ...authRequest.scope])],
+      } : authRequest;
+      const details = await oauth.describeConsent(consentRequest);
+      const transaction = await oauth.beginConsent(consentRequest);
       transaction.headers.set('content-type', 'text/html; charset=utf-8');
       transaction.headers.set('cache-control', 'no-store');
       // Chromium checks the POST's OAuth redirect against form-action too.
@@ -68,7 +81,7 @@ export async function consent(request: Request, env: Env): Promise<Response> {
       transaction.headers.set('content-security-policy', `default-src 'none'; form-action 'self' ${callbackOrigin}; frame-ancestors 'none'; base-uri 'none'`);
       transaction.headers.set('referrer-policy', 'same-origin');
       transaction.headers.set('x-content-type-options', 'nosniff');
-      return new Response(page(details, transaction.handle), { headers: transaction.headers });
+      return new Response(page(details, transaction.handle, grouped ? authRequest.scope : undefined), { headers: transaction.headers });
     }
     if (request.method !== 'POST') return new Response('Méthode refusée', { status: 405 });
     if (request.headers.get('origin') !== env.PUBLIC_ORIGIN) return new Response('Origine refusée', { status: 403 });

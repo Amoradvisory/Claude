@@ -32,3 +32,13 @@
 - [ ] Review diff independently, save deployment baseline/rollback, deploy existing Worker with unchanged bindings/secrets.
 - [ ] Verify live metadata and existing connection, then prompt Amor to reconnect and activate GPS. Verify through an actual ChatGPT conversation; record any blocking condition honestly.
 - [ ] Update UTILISATION.md and report with source/provenance, results and rollback; publish branch and preserve local audit additions.
+
+## Live finding and completion of the grouped policy
+
+The first deployment (3734ee22-7fd0-405b-ab28-8afbc7889ed1) publishes all five scopes and preserves the existing real ChatGPT connection (phone_status verified, 24 ms). Settings Reconnect nevertheless sends only speedcar:test for the official CIMD client. The owner did not approve this incomplete page.
+
+- [x] Reproduce the pinned request using the actual OAuth provider, client metadata fixture and PKCE; four expected failures observed.
+- [x] For a validated exact ChatGPT client/callback/resource with a base scope, offer all five resource scopes BEFORE displaying and storing a new consent. Keep POST, token and refresh downscoping unchanged. Retain requested offline_access only. Show the original request and grouped proposal separately.
+- [x] Full suite: 44 Worker + 3 Node, TypeScript and production dry-run pass; independent review finds no blocking issue.
+- [ ] Deploy the consent-policy completion with existing bindings/secrets and no migration, then REOPEN consent. Existing test-only forms must remain narrow.
+- [ ] Owner enters code and activates GPS; verify actual ChatGPT private result and same-UUID receipt. Do not infer token exchange behavior from the authorization page.
