@@ -9,10 +9,23 @@ export interface PhoneCommand {
 interface Entry extends PhoneCommand {
   createdAt: number; status: string; argsHash?:string; result?: Record<string, unknown>;
 }
-interface Attachment { deviceId: string; tokenHash: string; ready: boolean; model?: string; kinds?:string[] }
+interface Attachment { deviceId: string; tokenHash: string; ready: boolean; model?: string; kinds?:string[]; heartbeatMs?: number; readyAt?: number }
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+// Application heartbeat answered by the runtime without waking the object.
+export const HEARTBEAT_PING = '{"type":"ping"}';
+export const HEARTBEAT_PONG = '{"type":"pong"}';
+// A phone that is reconnecting (network change, short coverage gap) gets this
+// long to come back before a command is refused as phone_offline.
+export const RECONNECT_GRACE_MS = 4000;
+// Only a recent drop is worth waiting for; a phone gone for longer is refused at once.
+export const RECENT_DROP_MS = 120_000;
+const clampHeartbeat = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? Math.min(60_000, Math.max(1000, Math.round(value))) : undefined;
 
 export class PhoneLink extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+    ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair(HEARTBEAT_PING, HEARTBEAT_PONG));
+  }
   private transient = new Map<string,{at:number;result:Record<string,unknown>}>();
   private async hashArgs(args:Record<string,unknown>):Promise<string> {
     const canonical=(v:any):any=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
@@ -26,18 +39,55 @@ export class PhoneLink extends DurableObject<Env> {
     if (request.headers.get('upgrade')?.toLowerCase() !== 'websocket') return new Response('WebSocket required', { status: 426 });
     const deviceId = request.headers.get('x-speedcar-device');
     if (!this.env.PHONE_DEVICE_ID || deviceId !== this.env.PHONE_DEVICE_ID) return new Response('Wrong device', { status: 403 });
-    for (const old of this.ctx.getWebSockets()) old.close(1000, 'Connection replaced');
+    for (const old of this.ctx.getWebSockets()) {
+      // A replaced socket is not a disconnection of the phone: keep it out of the diagnostics.
+      const prior = old.deserializeAttachment() as Attachment | undefined;
+      if (prior) old.serializeAttachment({ ...prior, ready: false });
+      old.close(1000, 'Connection replaced');
+    }
     const pair = new WebSocketPair();
     this.ctx.acceptWebSocket(pair[1]);
     pair[1].serializeAttachment({ deviceId, tokenHash: this.env.PHONE_TOKEN_HASH, ready: false });
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 
+  // Last proof of life: the newest heartbeat answered by the runtime, else the handshake.
+  private lastSeen(socket: WebSocket, a: Attachment): number {
+    return Math.max(this.ctx.getWebSocketAutoResponseTimestamp(socket)?.getTime() ?? 0, a.readyAt ?? 0);
+  }
   private activeSocket(): WebSocket | undefined {
     return this.ctx.getWebSockets().find(socket => {
       const a = socket.deserializeAttachment() as Attachment | undefined;
-      return socket.readyState === 1 && a?.ready && a.deviceId === this.env.PHONE_DEVICE_ID && a.tokenHash === this.env.PHONE_TOKEN_HASH;
+      if (!(socket.readyState === 1 && a?.ready && a.deviceId === this.env.PHONE_DEVICE_ID && a.tokenHash === this.env.PHONE_TOKEN_HASH)) return false;
+      // Phones that announce a heartbeat and then go silent hold a half-open
+      // socket (network switch, tunnel): close it instead of sending into the void.
+      if (a.heartbeatMs && Date.now() - this.lastSeen(socket, a) > 3 * a.heartbeatMs + 2000) {
+        socket.serializeAttachment({ ...a, ready: false });
+        try { socket.close(4000, 'Heartbeat timeout'); } catch { /* already closing */ }
+        void this.ctx.storage.put('last_disconnect', { at: Date.now(), code: 4000, reason: 'heartbeat_timeout' });
+        return false;
+      }
+      return true;
     });
+  }
+  private async waitForSocket(until: number): Promise<WebSocket | undefined> {
+    let socket = this.activeSocket();
+    while (!socket && Date.now() < until) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      socket = this.activeSocket();
+    }
+    return socket;
+  }
+  private async offline(id: string, waited: number): Promise<Record<string, unknown>> {
+    const link = await this.ctx.storage.get<{ at: number }>('last_link');
+    const raw = await this.ctx.storage.get<number | { at: number; code?: number; reason?: string }>('last_disconnect');
+    const gone = typeof raw === 'number' ? { at: raw } : raw;
+    const diagnosis = !link ? 'phone_never_connected' : gone?.reason === 'heartbeat_timeout' ? 'phone_heartbeat_lost' : 'phone_link_closed';
+    return { status: 'phone_offline', outcome: 'phone_offline', command_id: id, executed: false, duration_ms: waited, waited_ms: waited, diagnosis,
+      last_connected_at: link ? new Date(link.at).toISOString() : null,
+      offline_for_s: gone && (!link || gone.at >= link.at) ? Math.round((Date.now() - gone.at) / 1000) : null,
+      last_close: gone ? { code: gone.code ?? null, reason: gone.reason ?? null } : null,
+      note: 'La liaison Speed Car du téléphone est absente : application arrêtée par le système, réseau du téléphone coupé ou reconnexion en cours. Aucune commande envoyée.' };
   }
 
   async webSocketMessage(socket: WebSocket, raw: string | ArrayBuffer): Promise<void> {
@@ -50,7 +100,7 @@ export class PhoneLink extends DurableObject<Env> {
       if (data.deviceId !== a.deviceId || data.model !== (this.env.PHONE_MODEL ?? '2510ERA8BG')) {
         socket.close(1008, 'Device identity mismatch'); return;
       }
-      a.ready = true; a.model = data.model;a.kinds=Array.isArray(data.capabilities)?data.capabilities.filter((k:unknown)=>typeof k==='string'&&kindAllowed(k)).slice(0,64):oldKinds; socket.serializeAttachment(a);
+      a.ready = true; a.model = data.model; a.readyAt = Date.now(); a.heartbeatMs = clampHeartbeat(data.heartbeat_ms);a.kinds=Array.isArray(data.capabilities)?data.capabilities.filter((k:unknown)=>typeof k==='string'&&kindAllowed(k)).slice(0,64):oldKinds; socket.serializeAttachment(a);
       await this.ctx.storage.put('last_link', { model: data.model, at: Date.now(), state: 'connected' });
       socket.send(JSON.stringify({ type: 'ready', deviceId: a.deviceId, serverTime: Date.now() }));
       return;
@@ -70,12 +120,21 @@ export class PhoneLink extends DurableObject<Env> {
     socket.send(JSON.stringify({ type: 'ack', id: data.id }));
   }
 
-  async webSocketClose(): Promise<void> {
-    await this.ctx.storage.put('last_disconnect', Date.now());
+  async webSocketClose(socket: WebSocket, code: number, reason: string): Promise<void> {
+    const a = socket.deserializeAttachment() as Attachment | undefined;
+    if (a?.ready) await this.ctx.storage.put('last_disconnect', { at: Date.now(), code, reason: String(reason ?? '').slice(0, 80) });
+  }
+  async webSocketError(socket: WebSocket): Promise<void> {
+    const a = socket.deserializeAttachment() as Attachment | undefined;
+    if (a?.ready) await this.ctx.storage.put('last_disconnect', { at: Date.now(), code: 1006, reason: 'socket_error' });
   }
 
   async linkStatus(): Promise<Record<string, unknown>> {
-    return { connected: Boolean(this.activeSocket()), last_sample: await this.ctx.storage.get('last_link') ?? null };
+    const socket = this.activeSocket();
+    const a = socket?.deserializeAttachment() as Attachment | undefined;
+    return { connected: Boolean(socket), last_sample: await this.ctx.storage.get('last_link') ?? null,
+      last_disconnect: await this.ctx.storage.get('last_disconnect') ?? null,
+      heartbeat_ms: a?.heartbeatMs ?? null, heartbeat_age_ms: socket && a ? Date.now() - this.lastSeen(socket, a) : null };
   }
 
   async commandStatus(id: string, allowedScopes?:string[]): Promise<Record<string, unknown>> {
@@ -100,8 +159,12 @@ export class PhoneLink extends DurableObject<Env> {
       return this.commandStatus(command.id);
     }
     if (command.expiresAt <= Date.now()) return { status: 'expired', command_id: command.id };
-    const socket = this.activeSocket();
-    if (!socket) return { status: 'phone_offline', command_id: command.id, executed: false };
+    const waitStart = Date.now();
+    const gone = this.activeSocket() ? undefined : await this.ctx.storage.get<number | { at: number }>('last_disconnect');
+    const droppedAt = typeof gone === 'number' ? gone : gone?.at;
+    const grace = droppedAt !== undefined && waitStart - droppedAt < RECENT_DROP_MS ? RECONNECT_GRACE_MS : 0;
+    const socket = await this.waitForSocket(Math.min(waitStart + grace, command.expiresAt - 1000));
+    if (!socket) return this.offline(command.id, Date.now() - waitStart);
     const advertised=socket.deserializeAttachment() as Attachment;
     if(!(advertised.kinds??oldKinds).includes(command.kind))return {status:'unsupported_capability',command_id:command.id,executed:false,proof_scope:'device_capability_advertisement'};
     const inserted = await this.ctx.storage.transaction(async storage => {

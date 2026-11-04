@@ -9,6 +9,7 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action !in listOf(Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED)) return
         val store = PairingStore(context)
         if (store.prefs.getBoolean("mode_enabled", false) && store.read() != null) {
+            try { LinkWatchdog.schedule(context) } catch (_: Exception) { /* Optional safety net. */ }
             try { LinkService.start(context) }
             catch (_: Exception) { store.prefs.edit().putString("link_state", "Ouvrir Speed Car pour reprendre").apply() }
         }

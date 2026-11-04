@@ -26,14 +26,19 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.min
 import kotlin.random.Random
 
+private const val HEARTBEAT_PING = "{\"type\":\"ping\"}"
+
 class LinkService : Service() {
     companion object {
         const val STOP = "fr.speedcar.app.STOP_LINK"
         @Volatile var connected = false
             private set
+        @Volatile var running = false
+            private set
         fun start(context: Context) { context.startForegroundService(Intent(context, LinkService::class.java)) }
         fun stop(context: Context) {
             PairingStore(context).prefs.edit().putBoolean("mode_enabled", false).apply()
+            LinkWatchdog.cancel(context)
             context.stopService(Intent(context, LinkService::class.java))
         }
     }
@@ -50,19 +55,45 @@ class LinkService : Service() {
     private var connecting = false
     private var failures = 0
     private var lastAttempt = 0L
+    private var boundNetwork: Long? = null
+    private var lastPingAt = 0L
+    private var lastPongAt = 0L
+    private var relayAnswers = false
     private val reconnect = Runnable { connect() }
+    private val heartbeat = object : Runnable {
+        override fun run() {
+            val ws = socket ?: return
+            if (!connected) return
+            lastPingAt = SystemClock.elapsedRealtime()
+            ws.send(HEARTBEAT_PING)
+            handler.postDelayed(pongCheck, LinkPolicy.PONG_TIMEOUT_MS + 500)
+            handler.postDelayed(this, LinkPolicy.HEARTBEAT_MS)
+        }
+    }
+    private val pongCheck = Runnable {
+        if (connected && LinkPolicy.pongOverdue(lastPingAt, lastPongAt, SystemClock.elapsedRealtime(), relayAnswers)) restartLink("Liaison muette · reconnexion")
+    }
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) { handler.post { if (!connected && !connecting) schedule(1000) } }
+        override fun onAvailable(network: Network) {
+            handler.post {
+                if ((connected || connecting) && LinkPolicy.mustReconnect(boundNetwork, network.networkHandle)) restartLink("Changement de réseau · reconnexion")
+                else if (!connected && !connecting) { failures = 0; schedule(0) }
+            }
+        }
+        override fun onLost(network: Network) {
+            handler.post { if (network.networkHandle == boundNetwork) restartLink("Réseau perdu · en attente") }
+        }
     }
 
     override fun onCreate() {
         super.onCreate()
         store = PairingStore(this); ledger = CommandLedger(this); pairing = store.read()
-        connected = false
+        connected = false; running = true
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("speed-car-link", "Connexion Speed Car", NotificationManager.IMPORTANCE_LOW))
         startForeground(73, notification("Connexion en cours"))
         getSystemService(ConnectivityManager::class.java).registerDefaultNetworkCallback(networkCallback)
+        try { LinkWatchdog.schedule(this) } catch (_: Exception) { /* The link itself does not depend on the watchdog. */ }
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == STOP) { store.prefs.edit().putBoolean("mode_enabled", false).apply(); stopSelf(); return START_NOT_STICKY }
@@ -89,12 +120,15 @@ class LinkService : Service() {
     private fun connect() {
         if (stopped || connecting || connected || !store.prefs.getBoolean("mode_enabled", false)) return
         val p = pairing ?: return
+        val network = getSystemService(ConnectivityManager::class.java).activeNetwork
+        if (network == null) { state("Pas de réseau · en attente"); schedule(LinkPolicy.NO_NETWORK_RETRY_MS); return }
         connecting = true; lastAttempt = SystemClock.elapsedRealtime(); state("Connexion en cours")
+        boundNetwork = network.networkHandle; relayAnswers = false; lastPingAt = 0L; lastPongAt = 0L
         val request = Request.Builder().url(p.origin.replaceFirst("https://", "wss://") + "/device")
             .header("Authorization", "Bearer ${p.token}").header("X-Speedcar-Device", p.deviceId).build()
         socket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                webSocket.send(JSONObject().put("type", "hello").put("deviceId", p.deviceId).put("model", Build.MODEL).put("version",BuildConfig.VERSION_NAME).put("capabilities",org.json.JSONArray(listOf("status","media_volume_up","media_volume_down","youtube_brave")+NativeCatalog.kinds)).toString())
+                webSocket.send(JSONObject().put("type", "hello").put("deviceId", p.deviceId).put("model", Build.MODEL).put("version",BuildConfig.VERSION_NAME).put("heartbeat_ms",LinkPolicy.HEARTBEAT_MS).put("capabilities",org.json.JSONArray(listOf("status","media_volume_up","media_volume_down","youtube_brave")+NativeCatalog.kinds)).toString())
             }
             override fun onMessage(webSocket: WebSocket, text: String) {
                 if (text.length > 16384 || webSocket !== socket) return
@@ -104,9 +138,13 @@ class LinkService : Service() {
                         "ready" -> {
                             if (data.optString("deviceId") != p.deviceId) { webSocket.close(1008, "Wrong device"); return }
                             connected = true
-                            handler.post { connecting = false; connected = true; failures = 0; state("Connecté au relais") }
+                            handler.post {
+                                connecting = false; connected = true; failures = 0; state("Connecté au relais")
+                                handler.removeCallbacks(heartbeat); handler.postDelayed(heartbeat, LinkPolicy.HEARTBEAT_MS)
+                            }
                             for ((id, result) in ledger.outbox()) sendResult(webSocket, id, result)
                         }
+                        "pong" -> handler.post { lastPongAt = SystemClock.elapsedRealtime(); relayAnswers = true }
                         "ack" -> ledger.acknowledge(data.getString("id"))
                         "command" -> {
                             if (!connected) return
@@ -132,15 +170,26 @@ class LinkService : Service() {
     private fun failed(ws: WebSocket) {
         handler.post {
             if (ws !== socket || stopped) return@post
-            socket = null; connecting = false; connected = false; failures = min(failures + 1, 7)
+            socket = null; connecting = false; connected = false; failures = min(failures + 1, LinkPolicy.MAX_FAILURES)
+            handler.removeCallbacks(heartbeat); handler.removeCallbacks(pongCheck)
             state("En attente de connexion")
-            val delay = min(60_000L, 1000L shl failures)
+            val delay = LinkPolicy.backoffMs(failures)
             schedule(delay + Random.nextLong(delay / 4 + 1))
         }
     }
+    /** Drops a socket known to be dead and reconnects at once instead of waiting for TCP to notice. */
+    private fun restartLink(reason: String) {
+        if (stopped) return
+        val ws = socket
+        socket = null; connecting = false; connected = false; failures = 0
+        handler.removeCallbacks(heartbeat); handler.removeCallbacks(pongCheck)
+        ws?.cancel()
+        state(reason)
+        schedule(0)
+    }
     override fun onDestroy() {
         LocationActions.cancelAll()
-        stopped = true; connected = false; handler.removeCallbacksAndMessages(null)
+        stopped = true; connected = false; running = false; handler.removeCallbacksAndMessages(null)
         socket?.close(1000, "Mode stopped"); socket = null
         try { getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(networkCallback) } catch (_: Exception) {}
         executor.execute { ledger.close() }

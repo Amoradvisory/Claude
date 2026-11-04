@@ -1,0 +1,6 @@
+{
+  "adb": "C:\\Android\\platform-tools\\adb.exe",
+  "model": "2510ERA8BG",
+  "candidates": ["192.168.129.27:5555", "100.114.34.85:5555"],
+  "timeoutMs": 5000
+}

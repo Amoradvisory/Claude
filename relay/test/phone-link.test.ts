@@ -123,3 +123,66 @@ it('treats sockets retained across deployment without capability metadata as leg
  socket.addEventListener('message',e=>{const v=JSON.parse(e.data);if(v.type==='command')socket.send(JSON.stringify({type:'result',id:v.id,result:{status:'rejected',reason:'clock_skew'}}))});
  const r=await link().execute({id:crypto.randomUUID(),kind:'speak',args:{text:'test'},expiresAt:Date.now()+12000});expect(r.status).toBe('unsupported_capability');socket.close();
 });
+
+describe('Reconnection grace and heartbeat liveness', () => {
+  it('waits briefly for a reconnecting phone instead of refusing at once', async () => {
+    (await connect()).close(1001, 'network switch');
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const command = { id: crypto.randomUUID(), kind: 'media_volume_up', args: { steps: 1 }, expiresAt: Date.now() + 3000 };
+    const pending = link().execute(command);
+    await new Promise(resolve => setTimeout(resolve, 600));
+    const socket = await connect();
+    socket.addEventListener('message', event => {
+      const value = JSON.parse(event.data);
+      if (value.type === 'command') socket.send(JSON.stringify({ type: 'result', id: value.id, result: { status: 'verified', before: 3, after: 4 } }));
+    });
+    const result = await pending;
+    expect(result.status).toBe('verified'); expect(result.after).toBe(4);
+    socket.close();
+  });
+  it('explains an offline refusal and never sends the command', async () => {
+    const socket = await connect(); socket.close(1001, 'network lost');
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const command = { id: crypto.randomUUID(), kind: 'media_volume_up', args: { steps: 1 }, expiresAt: Date.now() + 2000 };
+    const result = await link().execute(command);
+    expect(result.status).toBe('phone_offline'); expect(result.executed).toBe(false);
+    expect(result.diagnosis).toBe('phone_link_closed');
+    expect(result.waited_ms).toBeGreaterThanOrEqual(900);
+    expect(result.last_connected_at).toBeTypeOf('string');
+    expect((await link().commandStatus(command.id)).status).toBe('unknown');
+  });
+  it('reports a phone that never connected', async () => {
+    const result = await link().execute({ id: crypto.randomUUID(), kind: 'status', args: {}, expiresAt: Date.now() + 1200 });
+    expect(result.diagnosis).toBe('phone_never_connected'); expect(result.waited_ms).toBeLessThan(300);
+  });
+  it('answers the application heartbeat without involving the command path', async () => {
+    const response = await SELF.fetch('https://speedcar.test/device', { headers });
+    const socket = response.webSocket!; socket.accept();
+    const ready = next(socket, 'ready');
+    socket.send(JSON.stringify({ type: 'hello', deviceId: id, model: '2510ERA8BG', heartbeat_ms: 1000, capabilities: oldKinds }));
+    await ready;
+    const pong = next(socket, 'pong'); socket.send('{"type":"ping"}');
+    await pong;
+    const status = await link().linkStatus();
+    expect(status.connected).toBe(true); expect(status.heartbeat_ms).toBe(1000);
+    socket.close();
+  });
+  it('closes a silent half-open socket and refuses as heartbeat lost', async () => {
+    const response = await SELF.fetch('https://speedcar.test/device', { headers });
+    const socket = response.webSocket!; socket.accept();
+    const ready = next(socket, 'ready');
+    socket.send(JSON.stringify({ type: 'hello', deviceId: id, model: '2510ERA8BG', heartbeat_ms: 1000, capabilities: oldKinds }));
+    await ready;
+    let delivered = 0; socket.addEventListener('message', event => { if (JSON.parse(event.data).type === 'command') delivered++; });
+    await new Promise(resolve => setTimeout(resolve, 5200));
+    const result = await link().execute({ id: crypto.randomUUID(), kind: 'media_volume_up', args: { steps: 1 }, expiresAt: Date.now() + 1200 });
+    expect(result.status).toBe('phone_offline'); expect(result.diagnosis).toBe('phone_heartbeat_lost');
+    expect(delivered).toBe(0);
+  }, 12_000);
+  it('does not count a replaced connection as a phone disconnection', async () => {
+    await connect(); await connect();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const status = await link().linkStatus();
+    expect(status.connected).toBe(true); expect(status.last_disconnect).toBeNull();
+  });
+});
