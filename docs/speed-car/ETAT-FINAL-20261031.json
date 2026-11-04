@@ -1,0 +1,28 @@
+{
+  "startedAt": "2026-10-31T12:19:10.939Z",
+  "method": "phone_status",
+  "arguments": {},
+  "status": "returned",
+  "result": {
+    "model": "2510ERA8BG",
+    "android": "16",
+    "battery_percent": 41,
+    "media_volume": 50,
+    "media_maximum": 170,
+    "audio_mode": 0,
+    "network": "wifi",
+    "interactive": true,
+    "locked": false,
+    "overlay_allowed": true,
+    "usage_access_allowed": true,
+    "battery_optimization_exempt": true,
+    "notifications_allowed": true,
+    "status": "verified",
+    "proof_scope": "android_state",
+    "command_id": "a7705e39-a68c-4e0d-93a9-aad2ae87c99b",
+    "duration_ms": 26,
+    "sampled_at": "2026-10-31T12:19:12.138998Z",
+    "received_at": "2026-10-31T12:19:11.441Z"
+  },
+  "finishedAt": "2026-10-31T12:19:11.522Z"
+}

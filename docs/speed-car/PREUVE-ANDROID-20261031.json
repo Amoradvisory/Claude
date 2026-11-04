@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0-local",
+  "package": "fr.speedcar.app",
+  "apkBytes": 2400848,
+  "sha256": "a874998f890126f11a32b9df44cd55b7fdb53aa7b2a3edab63c6a451b4dc84c8",
+  "unitTests": {
+    "tests": 9,
+    "failures": 0,
+    "errors": 0
+  },
+  "lint": "passed_with_warnings",
+  "signature": "APK v2 verified",
+  "chatgpt_voice": "not_connected",
+  "phone_installation": "verified_on_Redmi_2510ERA8BG",
+  "physical_volume_test": "not_observed",
+  "brave_page_test": "not_observed",
+  "background_launch": "verified_via_go_js_ph_bg",
+  "buttons_visible": [
+    "Augmenter le volume média",
+    "YouTube dans Brave"
+  ],
+  "media_volume_displayed": {
+    "current": 100,
+    "maximum": 170
+  },
+  "foreground_phone_app_preserved": "ChatGPT",
+  "background_session": "stopped",
+  "verified_at": "2026-10-31T07:31:17Z"
+}

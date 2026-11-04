@@ -1,0 +1,23 @@
+{
+  "plugin_name": "dev-6ae5a96e8a488191a89c47d2d513495b",
+  "plugin_page_id": "plugin_asdk_app_6ae5a96e8a488191a89c47d2d513495b",
+  "app_id": "asdk_app_6ae5a96e8a488191a89c47d2d513495b",
+  "mapping_source": "Official plugin ZIP export .app.json",
+  "permissions_check": {
+    "dev_reference": "not_installed",
+    "plugin_reference": "not_installed",
+    "app_reference": "found",
+    "app_name": "Speed Car",
+    "global_permission": "Allow low-risk actions",
+    "app_permission": "Use my default"
+  },
+  "chat_model_ui_observed": {
+    "GPT-6": {
+      "aria-checked": "true"
+    },
+    "GPT-5.6 Sol": {
+      "aria-checked": "false"
+    },
+    "reasoning": "Élevé"
+  }
+}

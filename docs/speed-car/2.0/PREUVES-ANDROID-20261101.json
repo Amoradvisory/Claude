@@ -1,0 +1,293 @@
+{
+  "notice": "Reçus de clients de diagnostic authentifiés, hors interface ChatGPT. Aucun contenu sensible ni coordonnée publié. Les preuves ChatGPT sont séparées.",
+  "receipts": [
+    {
+      "tool": "phone_get_battery_details",
+      "startedAt": "2026-11-01T12:35:51.799Z",
+      "command_id": "5c719ca2-b326-472b-9680-363e974945c9",
+      "status": "returned",
+      "result": {
+        "status": "verified",
+        "outcome": "verified",
+        "proof_scope": "android_battery_broadcast",
+        "command_id": "5c719ca2-b326-472b-9680-363e974945c9",
+        "duration_ms": 38,
+        "sampled_at": "2026-11-01T12:35:53.709229Z",
+        "model": "2510ERA8BG",
+        "battery_percent": 21,
+        "charge_state": 3,
+        "temperature_celsius": 27,
+        "power_sources": []
+      },
+      "finishedAt": "2026-11-01T12:35:52.894Z"
+    },
+    {
+      "tool": "phone_get_connectivity",
+      "startedAt": "2026-11-01T12:35:52.957Z",
+      "command_id": "73d8da54-821a-4dd7-ab33-914f4228144d",
+      "status": "returned",
+      "result": {
+        "status": "verified",
+        "outcome": "verified",
+        "proof_scope": "android_connectivity_state",
+        "command_id": "73d8da54-821a-4dd7-ab33-914f4228144d",
+        "duration_ms": 64,
+        "sampled_at": "2026-11-01T12:35:54.103493Z",
+        "model": "2510ERA8BG",
+        "wifi_transport": true,
+        "mobile_transport": false,
+        "vpn_transport": true,
+        "wifi_enabled": true,
+        "bluetooth_enabled": null,
+        "bluetooth_permission_granted": false,
+        "internet_validated": true
+      },
+      "finishedAt": "2026-11-01T12:35:53.299Z"
+    },
+    {
+      "tool": "phone_media_status",
+      "startedAt": "2026-11-01T12:35:53.360Z",
+      "command_id": "af874b26-fcdf-4fdf-be44-0dfab5c516ad",
+      "status": "returned",
+      "result": {
+        "status": "permission_required",
+        "outcome": "permission_required",
+        "proof_scope": "authorization_only",
+        "command_id": "af874b26-fcdf-4fdf-be44-0dfab5c516ad",
+        "duration_ms": 6,
+        "sampled_at": "2026-11-01T12:35:54.525332Z",
+        "model": "2510ERA8BG",
+        "permission": "notification_listener_for_media_sessions",
+        "executed": false
+      },
+      "finishedAt": "2026-11-01T12:35:53.700Z"
+    },
+    {
+      "tool": "phone_get_notifications",
+      "startedAt": "2026-11-01T12:57:21.955Z",
+      "command_id": "9851672b-891f-4adf-828b-256ccfe428e7",
+      "status": "returned",
+      "result": {
+        "status": "permission_required",
+        "outcome": "permission_required",
+        "proof_scope": "authorization_only",
+        "command_id": "9851672b-891f-4adf-828b-256ccfe428e7",
+        "duration_ms": 0,
+        "sampled_at": "2026-11-01T12:57:23.221473Z",
+        "model": "2510ERA8BG",
+        "permission": "local_notifications_toggle",
+        "executed": false
+      },
+      "finishedAt": "2026-11-01T12:57:22.413Z"
+    },
+    {
+      "tool": "phone_get_screen_context",
+      "startedAt": "2026-11-01T12:57:35.033Z",
+      "command_id": "206a7686-aaa9-4da5-b6da-b7cbf55c6c3f",
+      "status": "returned",
+      "result": {
+        "status": "permission_required",
+        "outcome": "permission_required",
+        "proof_scope": "authorization_only",
+        "command_id": "206a7686-aaa9-4da5-b6da-b7cbf55c6c3f",
+        "duration_ms": 1,
+        "sampled_at": "2026-11-01T12:57:36.167642Z",
+        "model": "2510ERA8BG",
+        "permission": "accessibility_service",
+        "executed": false
+      },
+      "finishedAt": "2026-11-01T12:57:35.347Z"
+    },
+    {
+      "tool": "phone_list_apps",
+      "startedAt": "2026-11-01T12:58:47.084Z",
+      "command_id": "3e947cb6-8302-4b27-b70e-19bf03fb2d1e",
+      "status": "returned",
+      "result": {
+        "status": "verified",
+        "outcome": "verified",
+        "proof_scope": "android_launcher_packages_cached_5min",
+        "command_id": "3e947cb6-8302-4b27-b70e-19bf03fb2d1e",
+        "duration_ms": 56,
+        "sampled_at": "2026-11-01T12:58:48.403207Z",
+        "model": "2510ERA8BG",
+        "total_matches": 1,
+        "apps_count": 1,
+        "known_apps": {
+          "maps": true,
+          "spotify": false
+        }
+      },
+      "finishedAt": "2026-11-01T12:58:47.610Z"
+    },
+    {
+      "tool": "phone_media_volume_up",
+      "startedAt": "2026-11-01T12:59:11.892Z",
+      "command_id": "a70c11ed-4f44-4087-a0b4-3fe2b081eba2",
+      "status": "returned",
+      "result": {
+        "status": "verified",
+        "outcome": "verified",
+        "proof_scope": "android_media_index",
+        "command_id": "a70c11ed-4f44-4087-a0b4-3fe2b081eba2",
+        "duration_ms": 81,
+        "sampled_at": "2026-11-01T12:59:13.293444Z",
+        "model": "2510ERA8BG",
+        "before": 0,
+        "after": 1,
+        "target": 1,
+        "minimum": 0,
+        "maximum": 170,
+        "stream": "STREAM_MUSIC"
+      },
+      "finishedAt": "2026-11-01T12:59:12.488Z"
+    },
+    {
+      "tool": "phone_media_volume_down",
+      "startedAt": "2026-11-01T12:59:18.772Z",
+      "command_id": "51c85fd6-41f4-41da-aef7-5b1eb38a4844",
+      "status": "returned",
+      "result": {
+        "status": "verified",
+        "outcome": "verified",
+        "proof_scope": "android_media_index",
+        "command_id": "51c85fd6-41f4-41da-aef7-5b1eb38a4844",
+        "duration_ms": 36,
+        "sampled_at": "2026-11-01T12:59:19.986988Z",
+        "model": "2510ERA8BG",
+        "before": 1,
+        "after": 0,
+        "target": 0,
+        "minimum": 0,
+        "maximum": 170,
+        "stream": "STREAM_MUSIC"
+      },
+      "finishedAt": "2026-11-01T12:59:19.202Z"
+    },
+    {
+      "tool": "phone_set_media_volume",
+      "startedAt": "2026-11-01T12:59:32.407Z",
+      "command_id": "55ae3341-ecd7-4eab-af54-f11bfe243917",
+      "status": "returned",
+      "result": {
+        "status": "verified",
+        "outcome": "verified",
+        "proof_scope": "android_media_index",
+        "command_id": "55ae3341-ecd7-4eab-af54-f11bfe243917",
+        "duration_ms": 74,
+        "sampled_at": "2026-11-01T12:59:33.546586Z",
+        "model": "2510ERA8BG",
+        "before": 0,
+        "after": 1,
+        "target": 1,
+        "minimum": 0,
+        "maximum": 170,
+        "stream": "STREAM_MUSIC"
+      },
+      "finishedAt": "2026-11-01T12:59:32.791Z"
+    },
+    {
+      "tool": "phone_set_media_volume",
+      "startedAt": "2026-11-01T12:59:40.497Z",
+      "command_id": "097ff1f9-5803-4c79-b131-7011350586c6",
+      "status": "returned",
+      "result": {
+        "status": "verified",
+        "outcome": "verified",
+        "proof_scope": "android_media_index",
+        "command_id": "097ff1f9-5803-4c79-b131-7011350586c6",
+        "duration_ms": 85,
+        "sampled_at": "2026-11-01T12:59:41.656874Z",
+        "model": "2510ERA8BG",
+        "before": 1,
+        "after": 0,
+        "target": 0,
+        "minimum": 0,
+        "maximum": 170,
+        "stream": "STREAM_MUSIC"
+      },
+      "finishedAt": "2026-11-01T12:59:40.857Z"
+    },
+    {
+      "tool": "phone_find_device",
+      "startedAt": "2026-11-01T12:59:53.686Z",
+      "command_id": "cf43ac65-f0cf-4110-921f-8fbc9d477642",
+      "status": "returned",
+      "result": {
+        "status": "executed",
+        "outcome": "bounded_signal_requested",
+        "proof_scope": "android_signal_request",
+        "command_id": "cf43ac65-f0cf-4110-921f-8fbc9d477642",
+        "duration_ms": 1011,
+        "sampled_at": "2026-11-01T12:59:55.755222Z",
+        "model": "2510ERA8BG",
+        "vibration_requested": true,
+        "sound_playback_observed": false,
+        "physical_signal_verified": false,
+        "stopped": true
+      },
+      "finishedAt": "2026-11-01T12:59:54.971Z"
+    },
+    {
+      "tool": "phone_speak",
+      "startedAt": "2026-11-01T13:00:11.721Z",
+      "command_id": "1d7790c6-516e-40bc-ae96-5a825da8721c",
+      "status": "returned",
+      "result": {
+        "status": "phone_offline",
+        "outcome": "phone_offline",
+        "proof_scope": "relay_delivery",
+        "command_id": "1d7790c6-516e-40bc-ae96-5a825da8721c",
+        "duration_ms": 0,
+        "sampled_at": "2026-11-01T13:00:11.902Z",
+        "executed": false
+      },
+      "finishedAt": "2026-11-01T13:00:11.914Z"
+    },
+    {
+      "tool": "phone_open_url",
+      "startedAt": "2026-11-01T13:08:05.568Z",
+      "command_id": "6e6b57e5-ba46-4204-8494-7a7044edc605",
+      "status": "rejected",
+      "error_code": "tool_error"
+    },
+    {
+      "tool": "phone_media_volume_up",
+      "startedAt": "2026-11-01T13:08:19.174Z",
+      "command_id": "a70c11ed-4f44-4087-a0b4-3fe2b081eba2",
+      "status": "returned",
+      "result": {
+        "status": "verified",
+        "outcome": "verified",
+        "proof_scope": "android_media_index",
+        "command_id": "a70c11ed-4f44-4087-a0b4-3fe2b081eba2",
+        "duration_ms": 81,
+        "sampled_at": "2026-11-01T12:59:13.293444Z",
+        "model": "2510ERA8BG",
+        "before": 0,
+        "after": 1,
+        "target": 1,
+        "minimum": 0,
+        "maximum": 170,
+        "stream": "STREAM_MUSIC"
+      },
+      "finishedAt": "2026-11-01T13:08:19.362Z"
+    },
+    {
+      "tool": "phone_media_volume_up",
+      "startedAt": "2026-11-01T13:10:07.960Z",
+      "command_id": "a70c11ed-4f44-4087-a0b4-3fe2b081eba2",
+      "status": "returned",
+      "result": {
+        "status": "rejected",
+        "outcome": "rejected",
+        "proof_scope": "relay_delivery",
+        "command_id": "a70c11ed-4f44-4087-a0b4-3fe2b081eba2",
+        "duration_ms": 0,
+        "sampled_at": "2026-11-01T13:10:08.396Z",
+        "reason": "command_id_conflict"
+      },
+      "finishedAt": "2026-11-01T13:10:08.421Z"
+    }
+  ]
+}

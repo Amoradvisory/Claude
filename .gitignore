@@ -1,0 +1,16 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env*
+!.env.example
+dist/
+coverage/
+.superpowers/
+*.log
+.gradle/
+**/build/
+local.properties
+*.keystore
+*.jks
+
+relay/wrangler.production.jsonc

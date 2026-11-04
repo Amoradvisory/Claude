@@ -1,0 +1,27 @@
+{
+  "sampled_at": "2026-11-01T13:06:43.152Z",
+  "type": "production_oauth_stepup_test",
+  "client": "own_diagnostic_not_chatgpt",
+  "checks": [
+    {
+      "tool": "phone_get_location",
+      "http_status": 403,
+      "challenge": "Bearer error=\"insufficient_scope\", scope=\"speedcar:test speedcar:phone offline_access speedcar:location\", resource_metadata=\"https://speed-car-relay.speed-car-relay.workers.dev/.well-known/oauth-protected-resource/mcp\""
+    },
+    {
+      "tool": "phone_get_notifications",
+      "http_status": 403,
+      "challenge": "Bearer error=\"insufficient_scope\", scope=\"speedcar:test speedcar:phone offline_access speedcar:notifications\", resource_metadata=\"https://speed-car-relay.speed-car-relay.workers.dev/.well-known/oauth-protected-resource/mcp\""
+    },
+    {
+      "tool": "phone_get_screen_context",
+      "http_status": 403,
+      "challenge": "Bearer error=\"insufficient_scope\", scope=\"speedcar:test speedcar:phone offline_access speedcar:screen\", resource_metadata=\"https://speed-car-relay.speed-car-relay.workers.dev/.well-known/oauth-protected-resource/mcp\""
+    },
+    {
+      "tool": "speedcar_status",
+      "http_status": 200,
+      "challenge": null
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+import { AuthorizationError, CimdFetchError, type ConsentDescription } from '@cloudflare/workers-oauth-provider';
+import { owner, scope, phoneScope, sensitiveScopes, type Env } from './env';
+
+const escape = (value: string) => value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
+const digest = (value: string) => crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+
+async function boundedForm(request: Request): Promise<string | undefined> {
+  if (!request.body) return '';
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 4096) { await reader.cancel().catch(() => {}); return; }
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
+
+function page(details: ConsentDescription, handle: string, originalScopes?: readonly string[]): string {
+  const descriptions: Record<string, [string, string]> = {
+    [scope]: ['Test du relais', 'Tester le relais et relire ses reçus.'],
+    [phoneScope]: ['Commandes du téléphone', 'État, volume, applications, navigation, médias et préparation de partage sur le téléphone appairé.'],
+    'speedcar:location': ['Localisation ponctuelle', 'Obtenir une position à votre demande ; aucun suivi permanent.'],
+    'speedcar:notifications': ['Notifications', 'Lire les notifications filtrées et ouvrir ou retirer une notification choisie ; aucun envoi de réponse.'],
+    'speedcar:screen': ['Contexte d’écran', 'Lire le contexte sémantique des applications autorisées et effectuer les gestes limités Défilement / Retour ; aucun accès aux mots de passe.'],
+    offline_access: ['Connexion renouvelable', 'Renouveler cette connexion sans ressaisir le code à chaque expiration.'],
+  };
+  return `<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>Speed Car — autorisation initiale</title><h1>Connecter Speed Car</h1>
+<p>Client : <strong>${escape(details.clientName)}</strong>. ${details.clientDomain ? `Domaine : ${escape(details.clientDomain)}.` : 'Nom déclaré par le client, non vérifié.'}</p>
+<p>Destination de l'autorisation : <strong>${escape(details.redirectHost)}</strong>.</p>
+${details.redirectIsLoopback ? '<p>Attention : cette destination est une application locale sur votre ordinateur.</p>' : ''}
+${originalScopes ? `<p>ChatGPT a demandé initialement : ${originalScopes.map(escape).join(', ')}.</p>
+<p>Pour ce profil personnel, Speed Car propose un consentement groupé aux cinq droits Speed Car, avec le renouvellement de connexion si demandé. Ils seront accordés uniquement après la saisie de votre code et votre validation ; aucune ancienne autorisation ne sera modifiée.</p>` : ''}
+<p>Droits proposés pour cette connexion : ${details.scope.map(escape).join(', ')}.</p>
+<ul>${details.scope.map((s) => {
+    const [label, description] = descriptions[s];
+    return `<li><strong>${escape(label)}</strong> (<code>${escape(s)}</code>) : ${escape(description)}</li>`;
+  }).join('')}</ul>
+<p>Les accès privés nécessitent toujours votre demande explicite, les autorisations Android et les interrupteurs locaux correspondants. Ce consentement ne les active pas : vous les accordez vous-même dans Speed Car et Android, et pouvez les désactiver à tout moment.</p>
+<p>Autorisez seulement une connexion que vous venez de demander dans ChatGPT. Effectuez cette préparation à l'arrêt.</p>
+<form method="post" action="/authorize"><input type="hidden" name="handle" value="${escape(handle)}">
+<label>Code propriétaire — à saisir vous-même <input type="password" name="owner_secret" autocomplete="current-password" maxlength="256" required></label>
+<p><button name="decision" value="approve">Autoriser ces droits</button> <button name="decision" value="deny" formnovalidate>Refuser</button></p></form></html>`;
+}
+
+export async function consent(request: Request, env: Env): Promise<Response> {
+  const oauth = env.OAUTH_PROVIDER;
+  try {
+    if (request.method === 'GET') {
+      const authRequest = await oauth.parseAuthRequest(request);
+      // This application grants no rights outside its explicitly supported scopes.
+      if (authRequest.scope.some((s) => ![scope, phoneScope, ...sensitiveScopes, 'offline_access'].includes(s))) return new Response('Droit non pris en charge', { status: 400 });
+      // ChatGPT's Settings reconnect can pin speedcar:test despite discovery.
+      // Apply the owner's grouped policy only to the validated official client,
+      // callback and resource, BEFORE displaying and storing a NEW consent.
+      // Never expand a POST or an existing grant/consent transaction.
+      const grouped = authRequest.clientId === 'https://chatgpt.com/oauth/client.json'
+        && authRequest.redirectUri === 'https://chatgpt.com/connector_platform_oauth_redirect'
+        && authRequest.resource === `${env.PUBLIC_ORIGIN}/mcp`
+        && authRequest.scope.some((s) => s === scope || s === phoneScope);
+      const consentRequest = grouped ? {
+        ...authRequest, scope: [...new Set([scope, phoneScope, ...sensitiveScopes, ...authRequest.scope])],
+      } : authRequest;
+      const details = await oauth.describeConsent(consentRequest);
+      const transaction = await oauth.beginConsent(consentRequest);
+      transaction.headers.set('content-type', 'text/html; charset=utf-8');
+      transaction.headers.set('cache-control', 'no-store');
+      // Chromium checks the POST's OAuth redirect against form-action too.
+      // This URI was already validated against the registered OAuth client.
+      const callbackOrigin = new URL(details.redirectUri).origin;
+      if (!/^https?:\/\//.test(callbackOrigin)) return new Response('Retour OAuth web requis', { status: 400 });
+      transaction.headers.set('content-security-policy', `default-src 'none'; form-action 'self' ${callbackOrigin}; frame-ancestors 'none'; base-uri 'none'`);
+      transaction.headers.set('referrer-policy', 'same-origin');
+      transaction.headers.set('x-content-type-options', 'nosniff');
+      return new Response(page(details, transaction.handle, grouped ? authRequest.scope : undefined), { headers: transaction.headers });
+    }
+    if (request.method !== 'POST') return new Response('Méthode refusée', { status: 405 });
+    if (request.headers.get('origin') !== env.PUBLIC_ORIGIN) return new Response('Origine refusée', { status: 403 });
+    if (!request.headers.get('content-type')?.startsWith('application/x-www-form-urlencoded')) return new Response('Formulaire attendu', { status: 415 });
+    if (Number(request.headers.get('content-length') ?? 0) > 4096) return new Response('Formulaire trop grand', { status: 413 });
+    const body = await boundedForm(request);
+    if (body === undefined) return new Response('Formulaire trop grand', { status: 413 });
+    const form = new URLSearchParams(body);
+    const handle = form.get('handle') ?? '';
+    if (form.get('decision') === 'deny') {
+      const denied = await oauth.denyConsent(request, handle);
+      return new Response(null, { status: 302, headers: denied.headers });
+    }
+    if (form.get('decision') !== 'approve') return new Response('Décision attendue', { status: 400 });
+    const rawKey = new Uint8Array(await digest(request.headers.get('cf-connecting-ip') ?? 'local'));
+    const key = Array.from(rawKey.slice(0, 12), (x) => x.toString(16).padStart(2, '0')).join('');
+    if (!await env.OWNER_STATE.getByName(owner).allowLoginAttempt(key)) return new Response('Réessayez dans une minute', { status: 429, headers: { 'retry-after': '60' } });
+    if (!crypto.subtle.timingSafeEqual(await digest(form.get('owner_secret') ?? ''), await digest(env.OWNER_SETUP_SECRET))) return new Response('Autorisation refusée', { status: 403 });
+    const approved = await oauth.approveConsent(request, handle);
+    // Only the scopes from the validated, stored request are granted; never trust form-supplied scopes or a redirect URL.
+    const { redirectTo } = await oauth.completeAuthorization({
+      request: approved.request, userId: owner, metadata: { label: 'Speed Car personnel' },
+      scope: approved.request.scope, props: { owner },
+      // Explicit reconnection must not revoke or widen an existing base grant.
+      revokeExistingGrants: false,
+    });
+    approved.headers.set('location', redirectTo);
+    return new Response(null, { status: 302, headers: approved.headers });
+  } catch (error) {
+    if (error instanceof AuthorizationError || error instanceof CimdFetchError) {
+      return new Response('Autorisation invalide, expirée ou déjà utilisée. Recommencez depuis ChatGPT.', { status: 400 });
+    }
+    throw error;
+  }
+}

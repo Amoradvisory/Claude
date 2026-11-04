@@ -1,0 +1,27 @@
+{
+  "at": "2026-10-31T12:20:16.699Z",
+  "verified": true,
+  "results": [
+    {
+      "tool": "speedcar_status",
+      "result": {
+        "count": 5,
+        "last_receipt": {
+          "id": "0f2c6e4f-5ff6-413c-9109-cd85c18513e3",
+          "sequence": 5,
+          "written_at": "2026-10-31T12:06:11.891Z"
+        },
+        "android_control": "device_link_available",
+        "proof_scope": "relay_storage_only"
+      }
+    },
+    {
+      "tool": "phone_command_status",
+      "result": {
+        "status": "unknown",
+        "command_id": "00000000-0000-4000-8000-000000000001",
+        "note": "No retained receipt. Do not infer that no effect occurred."
+      }
+    }
+  ]
+}
