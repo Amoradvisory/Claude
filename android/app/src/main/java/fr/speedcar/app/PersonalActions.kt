@@ -43,7 +43,9 @@ class PersonalActions(private val context:Context) {
  }
  private fun speak(text:String,expiry:Long):JSONObject {
   require(text.isNotBlank()&&text.length<=300)
-  if(context.getSystemService(AudioManager::class.java).mode!=AudioManager.MODE_NORMAL)return JSONObject().put("status","call_in_progress").put("executed",false)
+  val audioMode=context.getSystemService(AudioManager::class.java).mode
+  // During the voice conversation the assistant already speaks : a second voice over it is refused, and said so.
+  if(audioMode!=AudioManager.MODE_NORMAL)return JSONObject().put("status","call_in_progress").put("outcome",if(AudioPolicy.voiceSession(audioMode))"voice_session_active_answer_aloud_yourself" else "call_in_progress").put("executed",false)
   val main=Handler(Looper.getMainLooper());val engine=AtomicReference<TextToSpeech?>();val done=CountDownLatch(1);val began=AtomicBoolean(false);val completed=AtomicBoolean(false);val error=AtomicReference<String?>();val cancelled=AtomicBoolean(false);val utterance=UUID.randomUUID().toString()
   val guard=AudioCallGuard(context.getSystemService(AudioManager::class.java)){cancelled.set(true);engine.get()?.stop();done.countDown()}
   main.post {if(cancelled.get()||System.currentTimeMillis()>=expiry){done.countDown();return@post};val tts=TextToSpeech(context){state->

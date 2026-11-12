@@ -13,6 +13,24 @@ object LinkPolicy {
     const val NO_NETWORK_RETRY_MS = 60_000L
     const val MAX_FAILURES = 4
 
+    /** Between the socket opening and the relay's "ready": beyond this the attempt is abandoned, never left hanging. */
+    const val HANDSHAKE_TIMEOUT_MS = 12_000L
+    /** After the screen wakes, a dead link must be noticed before the owner finishes a sentence. */
+    const val WAKE_PONG_TIMEOUT_MS = 4_000L
+    /** Upper bound of the wake lock held while one command runs. */
+    const val COMMAND_WAKE_MS = 15_000L
+
+    /** What the owner reads when the relay refuses the phone itself (HTTP status of the WebSocket upgrade). */
+    fun refusal(httpStatus: Int?): String? = when (httpStatus) {
+        null, 101 -> null
+        401 -> "Appairage refusé par le relais (401) · refaire l’appairage"
+        403 -> "Téléphone non reconnu par le relais (403)"
+        503 -> "Relais non configuré (503)"
+        else -> "Relais indisponible (HTTP $httpStatus)"
+    }
+    /** Retrying a refused pairing every few seconds changes nothing: wait for the owner. */
+    fun credentialsRefused(httpStatus: Int?): Boolean = httpStatus == 401 || httpStatus == 403
+
     fun backoffMs(failures: Int): Long = min(MAX_BACKOFF_MS, 1000L shl failures.coerceIn(0, MAX_FAILURES))
 
     /** A sent heartbeat stays unanswered too long. Relays that never answered (older versions) are not judged. */

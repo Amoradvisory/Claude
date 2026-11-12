@@ -46,7 +46,14 @@ class AssistantSettingsActivity:Activity() {
    val apps=view.items.filter{!SensitivePolicy.protectedPackage(it.packageName)};val allowed=prefs.getStringSet("screen_apps",emptySet()).orEmpty().toMutableSet();val checked=apps.map{allowed.contains(it.packageName)}.toBooleanArray()
    AlertDialog.Builder(this).setTitle("Applications autorisées").setMultiChoiceItems(apps.map{it.label}.toTypedArray(),checked){_,index,value->if(value)allowed.add(apps[index].packageName)else allowed.remove(apps[index].packageName)}.setPositiveButton("Enregistrer"){_,_->prefs.edit().putStringSet("screen_apps",allowed).apply()}.setNegativeButton("Annuler",null).show()
   }
-  text("Contexte sémantique uniquement. Défilement et Retour sont disponibles sur un instantané récent. Les clics, saisies et validations sensibles ne sont pas automatisés.")
+  text("Contexte sémantique uniquement. Défilement et Retour sont disponibles sur un instantané récent. Les saisies et validations sensibles ne sont jamais automatisées.")
+  toggle("Autoriser l’appui sur un élément (applications cochées ci-dessus uniquement)","ui_click_enabled")
+  text("Sert par exemple à lancer un titre dans Brave à la voix. Jamais de saisie de texte ; les boutons de paiement, d’envoi, de suppression, de connexion et d’autorisation sont refusés, ainsi que tout élément sans libellé. Ne cochez que des applications sans enjeu (Brave, Maps, Salât Lille).")
+  text("Fiabilité de la liaison sur HyperOS")
+  text("Pour que Speed Car reste relié sans être rouvert : démarrage automatique activé, batterie « Aucune restriction », et carte Speed Car verrouillée (cadenas) dans les applications récentes. Ces réglages se font ici, par vous.")
+  button("Démarrage automatique (HyperOS)"){open(Intent().setClassName("com.miui.securitycenter","com.miui.permcenter.autostart.AutoStartManagementActivity"))}
+  button("Batterie : choisir « Aucune restriction »"){open(Intent().setClassName("com.miui.powerkeeper","com.miui.powerkeeper.ui.HiddenAppsConfigActivity").putExtra("package_name",packageName).putExtra("package_label","Speed Car"))}
+  button("Autres autorisations HyperOS (fenêtres en arrière-plan)"){open(Intent("miui.intent.action.APP_PERM_EDITOR").setClassName("com.miui.securitycenter","com.miui.permcenter.permissions.PermissionsEditorActivity").putExtra("extra_pkgname",packageName))}
   text("Mes destinations personnelles — conservées sur ce téléphone")
   val home=EditText(this).apply{hint="Adresse ou coordonnées de Maison";setText(prefs.getString("place_home",""));setSingleLine(true)};page.addView(home)
   val work=EditText(this).apply{hint="Adresse ou coordonnées de Travail";setText(prefs.getString("place_work",""));setSingleLine(true)};page.addView(work)
@@ -57,7 +64,9 @@ class AssistantSettingsActivity:Activity() {
   button("Ouvrir les autorisations de Speed Car"){startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:$packageName")))}
   refresh()
  }
+ /** Opens a manufacturer settings screen when it exists, else the standard application page. Nothing is changed for the owner. */
+ private fun open(intent:Intent){try{startActivity(intent)}catch(_:Exception){try{startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:$packageName")))}catch(_:Exception){Toast.makeText(this,"Réglage introuvable sur ce téléphone.",Toast.LENGTH_SHORT).show()}}}
  override fun onResume(){super.onResume();AppCatalog.request(this);if(::status.isInitialized)refresh()}
  override fun onRequestPermissionsResult(requestCode:Int,permissions:Array<out String>,grantResults:IntArray){super.onRequestPermissionsResult(requestCode,permissions,grantResults);refresh()}
- private fun refresh(){if(!::status.isInitialized)return;val notifications=getSystemService(NotificationManager::class.java).isNotificationListenerAccessGranted(ComponentName(this,PhoneNotificationService::class.java));val camera=checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;status.text="GPS Android : ${LocationActions.permitted(this)} · Torche : $camera\nSessions médias : $notifications · Accessibilité : ${ScreenAccessService.instance!=null}\nOuverture d’applications : ${Settings.canDrawOverlays(this)}"}
+ private fun refresh(){if(!::status.isInitialized)return;val notifications=getSystemService(NotificationManager::class.java).isNotificationListenerAccessGranted(ComponentName(this,PhoneNotificationService::class.java));val camera=checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;status.text="GPS Android : ${LocationActions.permitted(this)} · Torche : $camera\nSessions médias : $notifications · Accessibilité : ${ScreenAccessService.instance!=null}\nOuverture d’applications : ${Settings.canDrawOverlays(this)} · Vérification du premier plan : ${ForegroundProbe.usageAllowed(this)}\nBatterie sans restriction (Android) : ${getSystemService(android.os.PowerManager::class.java).isIgnoringBatteryOptimizations(packageName)} · Appuis : ${prefs.getBoolean("ui_click_enabled",false)}"}
 }

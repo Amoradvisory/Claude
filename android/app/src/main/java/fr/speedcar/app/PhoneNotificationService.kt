@@ -13,11 +13,15 @@ class PhoneNotificationService:NotificationListenerService() {
  fun read(args:JSONObject):JSONObject {
   val since=System.currentTimeMillis()-args.optLong("since_seconds",3600).coerceIn(1,86400)*1000
   val target=args.optString("package_name");val limit=args.optInt("limit",10).coerceIn(1,20)
-  val rows=activeNotifications.filter{it.postTime>=since&&(target.isBlank()||it.packageName==target)&&it.packageName!=packageName}.sortedByDescending{it.postTime}.take(limit)
+  val rows=activeNotifications.filter{NotificationPolicy.included(it.postTime,since,it.isOngoing,target.isNotBlank())&&(target.isBlank()||it.packageName==target)&&it.packageName!=packageName}.sortedByDescending{it.postTime}.take(limit)
+  val now=System.currentTimeMillis()
   return JSONObject().put("status","verified").put("proof_scope","android_active_notifications").put("notifications",JSONArray(rows.map{n->
    val extras=n.notification.extras
-   val fields=ActionPolicy.notificationFields(extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty(),extras.getCharSequence(Notification.EXTRA_TEXT)?.toString().orEmpty())
-   JSONObject().put("key",n.key).put("package",n.packageName).put("posted_at_ms",n.postTime)
+   // The expanded wording is what the owner reads in the shade ; the short one is only its first line.
+   val body=extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()?.takeIf{it.isNotBlank()}?:extras.getCharSequence(Notification.EXTRA_TEXT)?.toString().orEmpty()
+   val fields=ActionPolicy.notificationFields(extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty(),body)
+   val countdown=NotificationPolicy.countdownSeconds(extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER),extras.getBoolean(Notification.EXTRA_CHRONOMETER_COUNT_DOWN),n.notification.`when`,now)
+   JSONObject().put("countdown_remaining_s",countdown?:JSONObject.NULL).put("sub_text",ActionPolicy.notificationText(extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString().orEmpty())).put("key",n.key).put("package",n.packageName).put("posted_at_ms",n.postTime)
     .put("title",fields.first)
     .put("text",fields.second)
     .put("can_open",n.notification.contentIntent!=null).put("ongoing",n.isOngoing)

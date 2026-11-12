@@ -23,6 +23,15 @@ class LinkPolicyTest {
     @Test fun `older relay without heartbeat answers is never judged`() {
         assertFalse(LinkPolicy.pongOverdue(pingAt = 100_000, pongAt = 0, now = 500_000, relayAnswers = false))
     }
+    @Test fun `a refused pairing is named and only retried slowly`() {
+        assertTrue(LinkPolicy.refusal(401)!!.contains("Appairage refusé")); assertTrue(LinkPolicy.credentialsRefused(401)); assertTrue(LinkPolicy.credentialsRefused(403))
+        assertFalse(LinkPolicy.credentialsRefused(503)); assertFalse(LinkPolicy.credentialsRefused(null))
+        assertEquals(null, LinkPolicy.refusal(null)); assertEquals(null, LinkPolicy.refusal(101))
+    }
+    @Test fun `a hanging handshake is abandoned before the heartbeat would judge it`() {
+        assertTrue(LinkPolicy.HANDSHAKE_TIMEOUT_MS < LinkPolicy.HEARTBEAT_MS)
+        assertTrue(LinkPolicy.WAKE_PONG_TIMEOUT_MS < LinkPolicy.PONG_TIMEOUT_MS)
+    }
     @Test fun `default network change forces a reconnection`() {
         assertTrue(LinkPolicy.mustReconnect(boundNetwork = 101L, newDefault = 202L))
         assertFalse(LinkPolicy.mustReconnect(boundNetwork = 101L, newDefault = 101L))

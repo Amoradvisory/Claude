@@ -31,14 +31,15 @@ class MediaActions(private val context:Context) {
   if(kind=="media_status")return JSONObject().put("status","verified").put("proof_scope","android_media_sessions").put("sessions",JSONArray(filtered.map{snapshot(it)}))
   val selected=MediaPolicy.choose(sessions.map{SessionSummary(it.packageName,it.playbackState?.state==PlaybackState.STATE_PLAYING)},wanted)
   if(selected==null)return JSONObject().put("status",if(filtered.isEmpty())"no_active_media_session" else "ambiguous_media_session").put("executed",false).put("packages",JSONArray(filtered.map{it.packageName}.distinct()))
-  if(audio.mode!=AudioManager.MODE_NORMAL)return JSONObject().put("status","call_in_progress").put("executed",false)
+  // Refused during a telephone call only : the voice conversation that carries the request is itself an audio session.
+  if(AudioPolicy.telephonyCall(audio.mode))return JSONObject().put("status","call_in_progress").put("executed",false).put("audio_mode",audio.mode)
   val session=sessions[selected];val before=snapshot(session);val oldTrack=track(session);val desired=when(kind){"media_play"->PlaybackState.STATE_PLAYING;"media_pause"->PlaybackState.STATE_PAUSED;else->null}
   if(desired!=null&&session.playbackState?.state==desired)return JSONObject().put("status","verified").put("outcome","already_in_requested_state").put("proof_scope","android_media_session_state").put("session",before)
   if(System.currentTimeMillis()>=expiry)return JSONObject().put("status","expired").put("executed",false)
   when(kind){"media_play"->session.transportControls.play();"media_pause"->session.transportControls.pause();"media_next"->session.transportControls.skipToNext();"media_previous"->session.transportControls.skipToPrevious();else->throw IllegalArgumentException("unsupported_media_action")}
   val until=minOf(expiry,System.currentTimeMillis()+1500);var observed=false
   while(System.currentTimeMillis()<until&&!observed){Thread.sleep(80);observed=if(desired!=null)session.playbackState?.state==desired else oldTrack!=null&&track(session)!=null&&track(session)!=oldTrack}
-  return JSONObject().put("status",if(observed)"verified" else "executed").put("outcome",if(observed)"requested_change_observed" else "command_sent_state_not_verified").put("proof_scope",if(observed)"android_media_session_change" else "media_transport_command_sent").put("before",before).put("after",snapshot(session))
+  return JSONObject().put("status",if(observed)"verified" else "executed").put("outcome",if(observed)"requested_change_observed" else "command_sent_state_not_verified").put("proof_scope",if(observed)"android_media_session_change" else "media_transport_command_sent").put("before",before).put("after",snapshot(session)).put("during_voice_session",AudioPolicy.voiceSession(audio.mode))
  }
  private fun track(c:MediaController):String? {val m=c.metadata?:return null;return m.getString(MediaMetadata.METADATA_KEY_MEDIA_ID)?:m.getString(MediaMetadata.METADATA_KEY_TITLE)?.let{it+"|"+m.getString(MediaMetadata.METADATA_KEY_ARTIST)}}
  private fun snapshot(c:MediaController):JSONObject {val state=c.playbackState;val m=c.metadata;return JSONObject().put("package",c.packageName).put("state",state?.state?:JSONObject.NULL).put("playing",state?.state==PlaybackState.STATE_PLAYING).put("title",m?.getString(MediaMetadata.METADATA_KEY_TITLE)?:JSONObject.NULL).put("artist",m?.getString(MediaMetadata.METADATA_KEY_ARTIST)?:JSONObject.NULL).put("position_ms",state?.position?:JSONObject.NULL).put("actions",state?.actions?:0)}

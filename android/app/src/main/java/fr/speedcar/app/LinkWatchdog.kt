@@ -35,7 +35,10 @@ class LinkWatchdog : JobService() {
 
     override fun onStartJob(params: JobParameters): Boolean {
         val store = PairingStore(this)
-        if (store.prefs.getBoolean("mode_enabled", false) && store.read() != null && !LinkService.running) {
+        val wanted = store.prefs.getBoolean("mode_enabled", false) && store.read() != null
+        // Alive but possibly holding a link that died while the phone slept: have it proved now.
+        if (wanted && LinkService.running) { try { LinkService.kick(this) } catch (_: Exception) { /* The heartbeat will notice. */ } }
+        if (wanted && !LinkService.running) {
             try {
                 LinkService.start(this)
                 store.prefs.edit().putString("link_state", "Relancé automatiquement").apply()

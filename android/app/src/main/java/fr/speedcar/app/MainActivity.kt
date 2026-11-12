@@ -158,6 +158,9 @@ class MainActivity : Activity() {
                 .put("android", Build.VERSION.RELEASE).put("ceilingPercent", ceiling)
                 .put("mediaVolume", audio.getStreamVolume(AudioManager.STREAM_MUSIC))
                 .put("remoteLink", LinkService.connected).put("lastResult", lastResult)
+                .put("linkState", pairingStore.prefs.getString("link_state", null)).put("linkDrops", pairingStore.prefs.getInt("link_drops", 0))
+                .put("linkLastDrop", pairingStore.prefs.getString("link_last_drop", null)).put("linkLastDropAtMs", pairingStore.prefs.getLong("link_last_drop_at", 0))
+                .put("linkConnectedAtMs", pairingStore.prefs.getLong("link_connected_at", 0))
                 .put("lastVolumeDiagnostic", settings.getString("last_diagnostic", null)).toString(2)
             getSystemService(ClipboardManager::class.java)
                 .setPrimaryClip(ClipData.newPlainText("Diagnostic Speed Car", diagnostic))
@@ -171,8 +174,9 @@ class MainActivity : Activity() {
         AppCatalog.request(this)
         if (::audio.isInitialized && ::volumeState.isInitialized) refreshVolume()
         if (::pairingStore.isInitialized) pairingStore.prefs.registerOnSharedPreferenceChangeListener(linkListener)
-        if (::pairingStore.isInitialized && pairingStore.prefs.getBoolean("mode_enabled", false) && !LinkService.connected && pairingStore.read() != null) {
-            try { LinkService.start(this) } catch (_: Exception) { record("Ouvre Speed Car au premier plan pour reprendre la connexion.") }
+        if (::pairingStore.isInitialized && pairingStore.prefs.getBoolean("mode_enabled", false) && pairingStore.read() != null) {
+            // Opening the application is the owner's repair gesture : restart a dead link, and have a live one proved.
+            try { if (LinkService.running) LinkService.kick(this) else LinkService.start(this) } catch (_: Exception) { record("Ouvre Speed Car au premier plan pour reprendre la connexion.") }
         }
         if (::connectionState.isInitialized) refreshConnection()
     }
