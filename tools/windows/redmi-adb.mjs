@@ -9,6 +9,8 @@
 //   node redmi-adb.mjs navigate "Action Mouscron" [--id UUID]
 //   node redmi-adb.mjs open-url https://m.youtube.com/ [--package com.brave.browser] [--id UUID]
 //   node redmi-adb.mjs foreground
+//   node redmi-adb.mjs open-app com.amoradvisory.salatlille [--id UUID]
+//       (identifiant de paquet, jamais un nom avec espace ou accent : il traverse PowerShell sans être déformé)
 //
 // Configuration (facultative) : redmi-adb.config.json à côté du script, ou variables
 // REDMI_ADB (chemin d'adb.exe), REDMI_MODEL, REDMI_CANDIDATES (liste "ip:port" séparée par des virgules).
@@ -130,6 +132,12 @@ export function navigationArgs(destination) {
   return ['shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW', '-d', `google.navigation:q=${encodeURIComponent(destination)}&mode=d`, '-p', MAPS];
 }
 
+// Mise au premier plan par l'identifiant du paquet : pas de nom affiché, donc ni accent ni espace à transmettre.
+export function launcherArgs(pkg) {
+  if (!/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$/.test(pkg ?? '')) throw new Error('package_id_required');
+  return ['shell', 'monkey', '-p', pkg, '-c', 'android.intent.category.LAUNCHER', '1'];
+}
+
 // Idempotence : un même identifiant ne relance jamais l'effet.
 export function withLedger(file, id, run) {
   mkdirSync(dirname(file), { recursive: true });
@@ -177,7 +185,9 @@ async function main(argv) {
       return t ? { status: 'verified', ...(await foreground(adb, t)) } : { status: 'phone_unreachable' };
     }
     case 'maps':
-      return openAndVerify(adb, config, id, ['shell', 'monkey', '-p', MAPS, '-c', 'android.intent.category.LAUNCHER', '1'], MAPS);
+      return openAndVerify(adb, config, id, launcherArgs(MAPS), MAPS);
+    case 'open-app':
+      return openAndVerify(adb, config, id, launcherArgs(value), value, { screen_content_verified: false });
     case 'navigate':
       return openAndVerify(adb, config, id, navigationArgs(value), MAPS, { destination: value, route_calculated_verified: false, navigation_started_verified: false });
     case 'open-url': {
@@ -186,7 +196,7 @@ async function main(argv) {
       return openAndVerify(adb, config, id, ['shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW', '-d', value, '-p', pkg], pkg, { url_loaded_verified: false });
     }
     default:
-      throw new Error('Usage : status | heal | foreground | maps | navigate "<destination>" | open-url <url> [--package p] [--id UUID]');
+      throw new Error('Usage : status | heal | foreground | maps | navigate "<destination>" | open-url <url> [--package p] | open-app <paquet> [--id UUID]');
   }
 }
 

@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync, readFileSync, chmodSync, existsSync } from 
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseDevices, transportKind, parseForeground, navigationArgs, resolveTransport, openAndVerify, adbRunner } from '../redmi-adb.mjs';
+import { parseDevices, transportKind, parseForeground, navigationArgs, launcherArgs, resolveTransport, openAndVerify, adbRunner } from '../redmi-adb.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 function scenario(state) {
@@ -82,4 +82,13 @@ test('flags a launch hidden behind the lock screen', async () => {
   const s = scenario({ ...incident(), keyguard: true });
   const r = await openAndVerify(s.adb, s.config, crypto.randomUUID(), navigationArgs('Action Mouscron'), 'com.google.android.apps.maps');
   assert.equal(r.keyguard_showing, true);
+});
+
+test('opens an application by package id and proves it is in front, never by a display name', async () => {
+  const s = scenario(incident()); const pkg = 'com.amoradvisory.salatlille';
+  const result = await openAndVerify(s.adb, s.config, 'c0000000-0000-4000-8000-000000000001', launcherArgs(pkg), pkg, { screen_content_verified: false });
+  assert.equal(result.status, 'verified'); assert.equal(result.foreground_package, pkg); assert.equal(result.screen_content_verified, false);
+  assert.throws(() => launcherArgs('Salât Lille'), /package_id_required/);
+  assert.throws(() => launcherArgs('salatlille; reboot'), /package_id_required/);
+  assert.throws(() => launcherArgs(undefined), /package_id_required/);
 });
