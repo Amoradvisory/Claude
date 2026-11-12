@@ -83,7 +83,7 @@ object AppAliases {
     fun key(spoken: String): String = Normalizer.normalize(spoken, Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
         .replace('’', '\'').lowercase(Locale.ROOT).replace(Regex("\\s+"), " ").trim()
     /** Spoken names resolved without waiting for the application inventory. */
-    fun packageFor(spoken: String): String? = known[key(spoken)]
+    fun packageFor(spoken: String): String? = known.entries.firstOrNull { AppNamePolicy.compact(it.key) == AppNamePolicy.compact(spoken) }?.value
 }
 
 object NotificationPolicy {

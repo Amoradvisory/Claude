@@ -54,6 +54,16 @@ describe('Phone authentication and durable command delivery', () => {
     expect((await link().linkStatus()).connected).toBe(true);
     socket.close();
   });
+  it('does not invent an epoch-sized heartbeat age for a retained legacy socket and counts a correlated result as life',async()=>{
+    const socket=await connect();
+    await runInDurableObject(link(),async(_instance,state)=>{for(const ws of state.getWebSockets()){const a=ws.deserializeAttachment();delete a.readyAt;ws.serializeAttachment(a)}});
+    expect((await link().linkSummary()).last_sign_of_life_s).toBeNull();
+    expect((await link().linkStatus()).heartbeat_age_ms).toBeNull();
+    socket.addEventListener('message',event=>{const value=JSON.parse(event.data);if(value.type==='command')socket.send(JSON.stringify({type:'result',id:value.id,result:{status:'verified'}}))});
+    await link().execute({id:crypto.randomUUID(),kind:'status',args:{},expiresAt:Date.now()+2000});
+    expect((await link().linkSummary()).last_sign_of_life_s).toBeLessThanOrEqual(1);
+    socket.close();
+  });
   it('persists the result, rejects ID conflicts, and does not deliver a duplicate twice', async () => {
     const socket = await connect(); let deliveries = 0;
     socket.addEventListener('message', event => {

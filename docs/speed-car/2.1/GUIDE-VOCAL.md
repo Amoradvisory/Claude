@@ -1,5 +1,7 @@
 # Speed Car 2.1.0 : guide d'utilisation à la voix
 
+> Complément du 12 novembre : relais **2.1.1**, application installée **2.0.1**. Pour cette combinaison, ouvrir puis lire dans **deux appels distincts** : `phone_open_app` avec le nom, puis `phone_get_screen_context include_text=true max_nodes=80`. `open_and_read` et les clics enrichis restent des capacités du futur APK. Le partage local, l’activation Android et la connexion du service d’accessibilité sont trois états distincts. Si la lecture répond `screen_unavailable`, vérifier `phone_status` : un téléphone en veille ne fournit pas nécessairement de fenêtre lisible. Réveil éventuel via le PC annoncé comme tel ; aucun réveil autonome de la version 2.0.1 n’est promis. [Diagnostic et preuves actuels](DIAGNOSTIC-20261112.md).
+
 > Ce guide décrit le comportement **prévu** de la version 2.1.0. Reprise locale du 12/11/2026 : le relais est déployé et relu en 2.1.0 ; l'APK Android 2.1.0 est construit mais son installation est **bloquée par un certificat différent de la référence exigée**. Le Redmi reste en 2.0.1 ; aucun essai vocal de cette recette n'est vérifié. Tant que la recette (`DEPLOIEMENT-ET-RECETTE.md`) n'est pas passée, considère chaque ligne comme « à confirmer ».
 
 ## Avant de parler

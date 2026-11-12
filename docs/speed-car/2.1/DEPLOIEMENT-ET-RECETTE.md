@@ -1,5 +1,7 @@
 # Speed Car 2.1.0 : déploiement depuis le PC et recette T1 à T12
 
+> Déploiement complémentaire du 12 novembre : relais **2.1.1**, 80 tests Worker + 3 Node, Android 2.1.1 construit mais non installé pour cause de certificat différent. [Diagnostic opérationnel et nouvelle démonstration ChatGPT](DIAGNOSTIC-20261112.md). Les essais vocaux T1 à T12 ci-dessous conservent leur propre statut ; une démonstration écrite ne les certifie pas.
+
 Ce document s'adresse à l'agent qui travaille **sur le PC** (Claude Code local ou Codex), avec le Redmi à portée et Amor disponible. Tout se fait **à l'arrêt**. Source : branche `claude/new-session-9tnxsf` du dépôt `Amoradvisory/Claude`.
 
 Règles : aucune autorisation Android accordée par ADB ; aucun secret lu, affiché ou recopié ; ne fermer ni ChatGPT, ni Brave, ni Opera, ni une session d'un autre agent ; pas de boucle de sondage sur le PC à 2 cœurs.

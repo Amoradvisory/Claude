@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { owner, scope, phoneScope, type Env } from './env';
 import type { PhoneKind } from './phone-link';
 import {capabilities, ttlFor} from './capabilities';
+import {AppResolutionError,prepareAppTarget} from './app-resolution';
 
 async function boundedRpc(request:Request):Promise<any> {
   const reader=request.clone().body?.getReader();if(!reader)return;
@@ -39,8 +40,8 @@ export const mcpApi = {
     }
     const state = env.OWNER_STATE.getByName(owner);
     const handler = createMcpHandler(() => {
-      const server = new McpServer({ name: 'speed-car', version: '2.1.0' }, {
-        instructions: 'Speed Car pilote uniquement le téléphone appairé. Un appel spécialisé par demande. GPS : phone_get_location, Google Maps : phone_open_maps, navigation : phone_navigate. Nom d’application : phone_open_app. Ne jamais inventer maison, un destinataire ou des coordonnées. Les données sensibles sont temporaires ; permission_required exige une autorisation volontaire, jamais un contournement. Un intent de navigation ne prouve pas un itinéraire calculé. Actions composées : appels successifs avec reçus, aucun effet incertain rejoué. Lecture d’écran/notifications seulement sur demande explicite. Pour une hausse du volume, phone_media_volume_up ; pour YouTube dans Brave, phone_open_youtube_brave. Générer un nouvel UUID command_id pour chaque demande volontaire et conserver le même en cas de reprise de transport. Si le résultat est indeterminate, lire phone_command_status avec ce même ID, sans rejouer avec un nouvel ID. Confirmer seulement les faits du reçu : un index média ne prouve pas le niveau acoustique ; Brave repris ne prouve pas le chargement de YouTube. Le test du relais ne prouve pas une action du téléphone. phone_offline : le dire en une phrase avec sa cause (diagnosis, champ say), sans réessayer en boucle ; n’utiliser une autre voie (PC/ADB) qu’en l’annonçant, jamais en la présentant comme Speed Car. Trois faits distincts à ne jamais confondre : relais joignable (speedcar_test_action), téléphone relié (phone_link connected ou phone_status verified), application réellement au premier plan (foreground_observed true). Voix et conduite : une phrase courte par réponse, aucune demande de regarder ou de toucher l’écran ; si une action exige un geste ou une autorisation, dire qu’elle se fera à l’arrêt. « Ouvre X et dis-moi… » : phone_open_app_and_read, puis répondre d’après lines seulement. « Lis ce qui s’affiche » : phone_get_screen_context format lines. « Reviens à ChatGPT » : phone_open_app app ChatGPT. Musique : phone_open_url (recherche), phone_ui_action click sur le titre voulu, puis phone_media_status ; n’annoncer la lecture que si playing est true ; pause et reprise : phone_media_pause, phone_media_play.',
+      const server = new McpServer({ name: 'speed-car', version: '2.1.1' }, {
+        instructions: 'Speed Car pilote le téléphone appairé, sans pont automatique vers les autres connecteurs. GPS : phone_get_location ; Maps : phone_open_maps ; navigation : phone_navigate. Ne jamais inventer une adresse, un destinataire ou des coordonnées. Utiliser les outils réellement disponibles et les capacités annoncées par phone_status, pas le seul numéro du relais. « Ouvre X et lis » : deux appels distincts phone_open_app puis phone_get_screen_context include_text true max_nodes 80 fonctionnent avec Android 2.0.1. Le nom accepte accents et séparateurs ; une ambiguïté est refusée. phone_open_app_and_read exige la capacité native open_and_read ; ne pas le tenter sur 2.0.1. Pour une lecture courte, format lines si le schéma disponible le permet ; les lignes adaptées du téléphone 2.0.1 gardent la preuve semantic_tree et son ordre, sans promettre un ordre visuel. Répondre uniquement avec les valeurs présentes dans le reçu, sans calcul ni source externe pour un compte à rebours demandé à l’écran. screen_enabled prouve uniquement le réglage interne ; screen_access distingue autorisation Android et service connecté, null signifie inconnu. permission_required demande une activation volontaire dans les réglages officiels, jamais un contournement. Lecture écran/notifications à la demande explicite seulement ; données sensibles temporaires, aucun affaiblissement des filtres. Un UUID neuf par demande volontaire ; conserver le même pour une reprise. indeterminate ou effet incertain : phone_command_status avec ce même ID, sans rejouer ailleurs. safe_to_consider_other_channel true autorise seulement à envisager un repli après un échec sans effet : si le mandat et les outils Remote Desktop Commander sont disponibles dans ce chat, annoncer ce canal, consulter les recettes du PC puis utiliser phoned et vérifier l’effet. Ce relais ne lance jamais ces outils. Ne pas utiliser un autre canal pour contourner un refus de confidentialité ou une permission. Trois preuves distinctes : relais joignable, téléphone relié, application réellement devant (foreground_observed true). Un intent ne prouve ni itinéraire calculé, ni chargement d’une page, ni message envoyé. phone_ui_action click exige la capacité Android et le consentement local ; sur une ancienne version, ne pas improviser une saisie ou un geste absent. Revenir à ChatGPT seulement sur demande. En conduite : réponse brève ; aucun geste demandé avant l’arrêt. Média : vérifier playing avant d’annoncer la lecture ; volume : reçu avant/après, pas une mesure acoustique.',
       });
       // The relay answering says nothing about the phone: every relay self-test states the phone link too.
       const linkLine = async (): Promise<{ fields: Record<string, unknown>; text: string }> => {
@@ -84,12 +85,28 @@ export const mcpApi = {
         content: [{ type: 'text' as const, text: JSON.stringify(result) }] });
       const invoke = async (id: string, kind: PhoneKind, args: Record<string, unknown>) => {
         if (!permitted()) return denied();
-        try { return wrap(normalize(await phone.execute({ id, kind, args, expiresAt: Date.now() + ttlFor(kind) }),id)); }
-        catch { return wrap({ status: 'indeterminate', command_id: id, note: 'La liaison a été interrompue ; lire le résultat avec le même identifiant avant toute nouvelle action.' }); }
+        const requestArgs=args;
+        try {
+          const replay=await phone.replay({id,kind,args:requestArgs});
+          if(replay)return wrap(normalize(replay,id));
+          if((kind==='open_app'||kind==='open_and_read')&&typeof args.app==='string') {
+            const target=await prepareAppTarget(args.app,query=>phone.execute({id:crypto.randomUUID(),kind:'list_apps',args:{query,limit:80},expiresAt:Date.now()+2000}));
+            args={...args,app:target};
+          }
+          if(kind==='screen_context'&&args.format==='lines')args={...args,include_text:true,max_nodes:80};
+          return wrap(normalize(await phone.execute({ id, kind, args, expiresAt: Date.now() + ttlFor(kind) },requestArgs),id));
+        }
+        catch(error) {
+          if(error instanceof AppResolutionError) {
+            try {return wrap(normalize(await phone.refuse({id,kind,args,expiresAt:Date.now()+ttlFor(kind)},error.result()),id));}
+            catch {/* Receipt storage failed: do not manufacture a confirmed no-effect result. */}
+          }
+          return wrap({ status: 'indeterminate', command_id: id, note: 'La liaison a été interrompue ; lire le résultat avec le même identifiant avant toute nouvelle action.' });
+        }
       };
       server.registerTool('phone_status', {
         title: 'Lire l’état actuel du Redmi',
-        description: 'Lit modèle, batterie, réseau, volume et permissions utiles depuis le téléphone appairé, sans le réveiller. phone_offline signifie que sa liaison Speed Car est absente.',
+        description: 'Lit modèle, batterie, réseau, volume et capacités natives. screen_enabled est le réglage interne ; screen_access indique séparément autorisation Android et connexion du service. null = donnée inconnue sur une ancienne application, jamais une preuve de disponibilité. phone_offline signifie que la liaison Speed Car est absente.',
         inputSchema: z.strictObject({}),
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       }, async () => invoke(crypto.randomUUID(), 'status', {}));

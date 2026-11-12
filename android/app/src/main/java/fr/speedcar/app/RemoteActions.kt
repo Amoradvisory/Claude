@@ -154,7 +154,7 @@ class RemoteActions(private val context: Context, private val pairing: Pairing, 
             .put("locked", context.getSystemService(KeyguardManager::class.java).isKeyguardLocked)
             .put("overlay_allowed", Settings.canDrawOverlays(context)).put("usage_access_allowed", usageAllowed())
             .put("battery_optimization_exempt", context.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(context.packageName))
-            .put("accessibility_bound", ScreenAccessService.instance != null).put("notification_listener_bound", PhoneNotificationService.instance != null)
+            .put("accessibility_enabled",ScreenAccessDiagnostics.enabled(context)).put("accessibility_bound", ScreenAccessService.instance != null).put("notification_listener_bound", PhoneNotificationService.instance != null)
             .put("press_enabled", context.getSharedPreferences("speed-car-private",0).getBoolean("ui_click_enabled",false))
             .put("screen_apps_allowed", context.getSharedPreferences("speed-car-private",0).getStringSet("screen_apps",emptySet()).orEmpty().size)
             .put("link", PairingStore(context).prefs.let { p -> JSONObject().put("connected_at_ms", p.getLong("link_connected_at", 0)).put("drops", p.getInt("link_drops", 0))

@@ -1,6 +1,7 @@
 package fr.speedcar.app
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Intent
 import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
@@ -18,6 +19,7 @@ class ScreenAccessService:AccessibilityService() {
  override fun onServiceConnected(){instance=this}
  override fun onAccessibilityEvent(event:AccessibilityEvent?){}
  override fun onInterrupt(){clear()}
+ override fun onUnbind(intent:Intent?):Boolean {if(instance===this)instance=null;clear();return super.onUnbind(intent)}
  override fun onDestroy(){if(instance===this)instance=null;clear();super.onDestroy()}
  @Synchronized private fun clear(){nodes.values.forEach{it.recycle()};nodes.clear();snapshot="";main.removeCallbacksAndMessages(null)}
  fun allowedFor(pkg:String)=allowed(pkg)

@@ -59,6 +59,8 @@ class VoicePolicyTest {
     @Test fun `spoken names resolve whatever the accents and case`() {
         assertEquals("com.amoradvisory.salatlille", AppAliases.packageFor("Salât Lille"))
         assertEquals("com.amoradvisory.salatlille", AppAliases.packageFor("  salat   lille "))
+        assertEquals("com.amoradvisory.salatlille", AppAliases.packageFor("Salat-Lille"))
+        assertEquals("com.amoradvisory.salatlille", AppAliases.packageFor("SALÂTLILLE"))
         assertEquals("com.amoradvisory.salatlille", AppAliases.packageFor("l’application de prière"))
         assertEquals("com.openai.chatgpt", AppAliases.packageFor("ChatGPT"))
         assertNull(AppAliases.packageFor("une application inconnue"))

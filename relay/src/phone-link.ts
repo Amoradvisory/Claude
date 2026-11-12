@@ -1,6 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import type { Env } from './env';
 import {kindAllowed,isSensitive,sensitiveReceipt,privateScopeFor,oldKinds} from './capabilities';
+import {projectPhoneResult} from './operational-diagnostics';
 
 export type PhoneKind = string;
 export interface PhoneCommand {
@@ -8,8 +9,9 @@ export interface PhoneCommand {
 }
 interface Entry extends PhoneCommand {
   createdAt: number; status: string; argsHash?:string; result?: Record<string, unknown>;
+  screenView?: {maxLines:number};
 }
-interface Attachment { deviceId: string; tokenHash: string; ready: boolean; model?: string; version?: string; kinds?:string[]; heartbeatMs?: number; readyAt?: number; probe?: boolean }
+interface Attachment { deviceId: string; tokenHash: string; ready: boolean; model?: string; version?: string; kinds?:string[]; heartbeatMs?: number; readyAt?: number; lastResultAt?:number; probe?: boolean }
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 // Application heartbeat answered by the runtime without waking the object.
 export const HEARTBEAT_PING = '{"type":"ping"}';
@@ -40,6 +42,48 @@ export class PhoneLink extends DurableObject<Env> {
     for(const [key,value] of this.transient)if(Date.now()-value.at>30000)this.transient.delete(key);
     return this.transient.get(id)?.result;
   }
+  private rememberTransient(id:string,result:Record<string,unknown>):void {
+    this.transient.set(id,{at:Date.now(),result});
+    setTimeout(()=>this.transient.delete(id),30000);
+    while(this.transient.size>50)this.transient.delete(this.transient.keys().next().value!);
+  }
+  private async reserve(command:PhoneCommand,argsHash:string,result?:Record<string,unknown>):Promise<boolean> {
+    const key=`command:${command.id}`;
+    return this.ctx.storage.transaction(async storage=>{
+      if(await storage.get(key))return false;
+      const index=(await storage.get<{id:string;at:number}[]>('command_index')??[]);
+      const stale=index.filter(e=>Date.now()-e.at>86_400_000);
+      let keep=index.filter(e=>Date.now()-e.at<=86_400_000);
+      stale.push(...keep.slice(0,Math.max(0,keep.length-199)));keep=keep.slice(-199);
+      for(const old of stale)await storage.delete(`command:${old.id}`);
+      const requested=Number(command.args.max_lines??40);
+      const screenView=command.kind==='screen_context'&&command.args.format==='lines'?{maxLines:Number.isFinite(requested)?Math.max(1,Math.min(60,Math.floor(requested))):40}:undefined;
+      await storage.put(key,{...command,args:{},argsHash,createdAt:Date.now(),status:result?String(result.status):'sent',
+        ...(screenView?{screenView}:{}),...(result?{result:isSensitive(command.kind)?sensitiveReceipt(command.id,result):result}:{})} satisfies Entry);
+      await storage.put('command_index',[...keep,{id:command.id,at:Date.now()}]);
+      return true;
+    });
+  }
+
+  /** A failed read-only resolution is a durable refusal, never a pretend phone delivery. */
+  async refuse(command:PhoneCommand,refusal:Record<string,unknown>):Promise<Record<string,unknown>> {
+    if(!uuid.test(command.id)||!['open_app','open_and_read'].includes(command.kind)||refusal.executed!==false
+      ||!['app_not_found','ambiguous_app','resolution_unavailable','catalog_loading','phone_offline','unsupported_capability','permission_required'].includes(String(refusal.status)))return {status:'rejected',reason:'invalid_refusal',command_id:command.id};
+    const argsHash=await this.hashArgs(command.args);
+    const prior=await this.ctx.storage.get<Entry>(`command:${command.id}`);
+    if(prior) {
+      if(prior.kind!==command.kind||(prior.argsHash??await this.hashArgs(prior.args))!==argsHash)return {status:'rejected',reason:'command_id_conflict',command_id:command.id};
+      return this.commandStatus(command.id);
+    }
+    const result=projectPhoneResult(command.kind,{...refusal,command_id:command.id,sampled_at:new Date().toISOString()});
+    if(!(await this.reserve(command,argsHash,result))) {
+      const known=await this.ctx.storage.get<Entry>(`command:${command.id}`);
+      if(known&&(known.kind!==command.kind||known.argsHash!==argsHash))return {status:'rejected',reason:'command_id_conflict',command_id:command.id};
+      return this.commandStatus(command.id);
+    }
+    this.rememberTransient(command.id,result);
+    return result;
+  }
   async fetch(request: Request): Promise<Response> {
     if (request.headers.get('upgrade')?.toLowerCase() !== 'websocket') return new Response('WebSocket required', { status: 426 });
     const deviceId = request.headers.get('x-speedcar-device');
@@ -58,7 +102,7 @@ export class PhoneLink extends DurableObject<Env> {
 
   // Last proof of life: the newest heartbeat answered by the runtime, else the handshake.
   private lastSeen(socket: WebSocket, a: Attachment): number {
-    return Math.max(this.ctx.getWebSocketAutoResponseTimestamp(socket)?.getTime() ?? 0, a.readyAt ?? 0);
+    return Math.max(this.ctx.getWebSocketAutoResponseTimestamp(socket)?.getTime() ?? 0, a.readyAt ?? 0,a.lastResultAt??0);
   }
   private silent(socket: WebSocket, a: Attachment): boolean {
     return Boolean(a.heartbeatMs) && Date.now() - this.lastSeen(socket, a) > 3 * a.heartbeatMs! + 2000;
@@ -138,12 +182,11 @@ export class PhoneLink extends DurableObject<Env> {
     if (data.type !== 'result' || !a.ready || !uuid.test(data.id ?? '') || !data.result || typeof data.result !== 'object') return;
     const key = `command:${data.id}`;
     const entry = await this.ctx.storage.get<Entry>(key);
+    if(entry){a.lastResultAt=Date.now();socket.serializeAttachment(a);}
     if (entry && (!entry.result || (entry.result.status === 'indeterminate' && data.result.status !== 'indeterminate'))) {
-      const result = { ...data.result, command_id: entry.id, device_id: a.deviceId, received_at: new Date().toISOString() };
+      const result = projectPhoneResult(entry.kind,{ ...data.result, command_id: entry.id, device_id: a.deviceId, received_at: new Date().toISOString() },entry.screenView);
       if (isSensitive(entry.kind)) {
-        this.transient.set(entry.id,{at:Date.now(),result});
-        setTimeout(()=>this.transient.delete(entry.id),30000);
-        while(this.transient.size>50)this.transient.delete(this.transient.keys().next().value!);
+        this.rememberTransient(entry.id,result);
       }
       await this.ctx.storage.put(key, { ...entry, result:isSensitive(entry.kind)?sensitiveReceipt(entry.id,result):result, status: String(data.result.status ?? 'indeterminate') });
     }
@@ -164,7 +207,7 @@ export class PhoneLink extends DurableObject<Env> {
     const a = socket?.deserializeAttachment() as Attachment | undefined;
     return { connected: Boolean(socket), last_sample: await this.ctx.storage.get('last_link') ?? null,
       last_disconnect: await this.ctx.storage.get('last_disconnect') ?? null,
-      heartbeat_ms: a?.heartbeatMs ?? null, heartbeat_age_ms: socket && a ? Date.now() - this.lastSeen(socket, a) : null };
+      heartbeat_ms: a?.heartbeatMs ?? null, heartbeat_age_ms: socket && a && this.lastSeen(socket,a)>0 ? Date.now() - this.lastSeen(socket, a) : null };
   }
 
   // Read-only view for the relay self-tests, so that "relay reachable" is never
@@ -180,7 +223,7 @@ export class PhoneLink extends DurableObject<Env> {
       phone_link: !socket ? (link ? 'absent' : 'never_connected') : quiet ? 'connected_silent' : 'connected',
       phone_app_version: a?.version ?? link?.version ?? null,
       last_connected_at: link ? new Date(link.at).toISOString() : null,
-      last_sign_of_life_s: socket && a ? Math.round((Date.now() - this.lastSeen(socket, a)) / 1000) : null,
+      last_sign_of_life_s: socket && a && this.lastSeen(socket,a)>0 ? Math.round((Date.now() - this.lastSeen(socket, a)) / 1000) : null,
       offline_for_s: !socket && gone && (!link || gone.at >= link.at) ? Math.round((Date.now() - gone.at) / 1000) : null,
       last_close: !socket && gone ? { code: gone.code ?? null, reason: gone.reason ?? null } : null,
       proof_scope: 'relay_link_state_only',
@@ -197,12 +240,20 @@ export class PhoneLink extends DurableObject<Env> {
     return e.result ?? { status: 'indeterminate', command_id: id, expires_at: e.expiresAt, note: 'No final receipt; do not repeat with a new ID.' };
   }
 
-  async execute(command: PhoneCommand): Promise<Record<string, unknown>> {
+  /** Compare the caller's original arguments before an inventory lookup or any delivery. */
+  async replay(command:Pick<PhoneCommand,'id'|'kind'|'args'>):Promise<Record<string,unknown>|null> {
+    const known=await this.ctx.storage.get<Entry>(`command:${command.id}`);
+    if(!known)return null;
+    if(known.kind!==command.kind||(known.argsHash??await this.hashArgs(known.args))!==await this.hashArgs(command.args))return {status:'rejected',reason:'command_id_conflict',command_id:command.id};
+    return this.commandStatus(command.id);
+  }
+
+  async execute(command: PhoneCommand,requestArgs:Record<string,unknown>=command.args): Promise<Record<string, unknown>> {
     if (!uuid.test(command.id) || !kindAllowed(command.kind)) {
       return { status: 'rejected', reason: 'invalid_command' };
     }
     const key = `command:${command.id}`;
-    const argsHash=await this.hashArgs(command.args);
+    const argsHash=await this.hashArgs(requestArgs);
     const known = await this.ctx.storage.get<Entry>(key);
     if (known) {
       if (known.kind !== command.kind || (known.argsHash??await this.hashArgs(known.args)) !== argsHash) return { status: 'rejected', reason: 'command_id_conflict', command_id: command.id };
@@ -222,18 +273,7 @@ export class PhoneLink extends DurableObject<Env> {
     if (!socket) return this.offline(command.id, Date.now() - waitStart);
     const advertised=socket.deserializeAttachment() as Attachment;
     if(!(advertised.kinds??oldKinds).includes(command.kind))return {status:'unsupported_capability',command_id:command.id,executed:false,proof_scope:'device_capability_advertisement'};
-    const inserted = await this.ctx.storage.transaction(async storage => {
-      if (await storage.get(key)) return false;
-      const index = (await storage.get<{ id: string; at: number }[]>('command_index') ?? []);
-      const stale = index.filter(e => Date.now() - e.at > 86_400_000);
-      let keep = index.filter(e => Date.now() - e.at <= 86_400_000);
-      stale.push(...keep.slice(0, Math.max(0, keep.length - 199)));
-      keep = keep.slice(-199);
-      for (const old of stale) await storage.delete(`command:${old.id}`);
-      await storage.put(key, { ...command, args:{}, argsHash, createdAt: Date.now(), status: 'sent' } satisfies Entry);
-      await storage.put('command_index', [...keep, { id: command.id, at: Date.now() }]);
-      return true;
-    });
+    const inserted = await this.reserve(command,argsHash);
     if (!inserted) {const prior=await this.ctx.storage.get<Entry>(key);if(prior&&(prior.kind!==command.kind||prior.argsHash!==argsHash))return {status:'rejected',reason:'command_id_conflict',command_id:command.id};return this.commandStatus(command.id);}
     try { socket.send(JSON.stringify({ type: 'command', deviceId: this.env.PHONE_DEVICE_ID, ...command })); }
     catch { return this.commandStatus(command.id); }

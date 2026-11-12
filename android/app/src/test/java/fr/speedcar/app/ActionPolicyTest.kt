@@ -8,6 +8,8 @@ class ActionPolicyTest {
  @Test fun coordinatesMustBeFiniteAndInRange(){assertThrows(IllegalArgumentException::class.java){ActionPolicy.coordinates(Double.NaN,1.0)};assertThrows(IllegalArgumentException::class.java){ActionPolicy.coordinates(91.0,1.0)}}
  @Test fun absoluteVolumeRespectsLocalCeiling(){assertEquals(85,ActionPolicy.volumeTarget(50,0,170,60));assertEquals(102,ActionPolicy.volumeTarget(100,0,170,60));assertThrows(IllegalArgumentException::class.java){ActionPolicy.volumeTarget(-1,0,170,60)}}
  @Test fun appResolutionPrefersExactAndRefusesAmbiguity(){val a=listOf(AppEntry("a.one","Carte"),AppEntry("b.two","Cartes"));assertEquals("a.one",ActionPolicy.apps("carte",a).single().packageName);assertEquals(2,ActionPolicy.apps("cart",a).size)}
+ @Test fun appResolutionAcceptsPunctuationAndCompactSpelling(){val a=listOf(AppEntry("com.amoradvisory.salatlille","Salât Lille"));for(q in listOf("Salat-Lille","SALÂT — LILLE","salatlille","  Salat\u00a0  Lille  "))assertEquals(q,"com.amoradvisory.salatlille",ActionPolicy.apps(q,a).single().packageName)}
+ @Test fun exactLabelsBeatNormalizedCollisions(){val a=listOf(AppEntry("a.one","A-B"),AppEntry("b.two","A B"));assertEquals("a.one",ActionPolicy.apps("A-B",a).single().packageName);assertEquals(2,ActionPolicy.apps("A_B",a).size)}
  @Test fun privateNotificationSecretsAreRemoved(){assertEquals("[contenu sensible masqué]",ActionPolicy.notificationText("Votre code OTP est 123456"));assertEquals("Bonjour",ActionPolicy.notificationText("Bonjour"))}
  @Test fun dangerousDialStringsAreRejected(){assertThrows(IllegalArgumentException::class.java){ActionPolicy.phoneNumber("*21*123#")};assertEquals("+33123456789",ActionPolicy.phoneNumber("+33 1 23 45 67 89"))}
 }

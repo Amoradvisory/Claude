@@ -10,6 +10,53 @@ const chatgptClient = 'https://chatgpt.com/oauth/client.json';
 const chatgptCallback = 'https://chatgpt.com/connector_platform_oauth_redirect';
 const nativeFetch = globalThis.fetch.bind(globalThis);
 
+async function withLegacyPhone(test: (commands: any[]) => Promise<void>, apps=[{ package: 'com.amoradvisory.salatlille', name: 'Salât Lille' }]) {
+  const stub = (env as any).PHONE_LINK.getByName('speed-car-owner');
+  await runInDurableObject(stub, async (_instance, state) => {
+    for (const socket of state.getWebSockets()) socket.close(1000, 'Test reset');
+    await state.storage.deleteAll();
+  });
+  const response = await SELF.fetch(`${origin}/device`, { headers: {
+    upgrade: 'websocket', authorization: 'Bearer test-phone-token-' + 'a'.repeat(48),
+    'x-speedcar-device': '11111111-1111-4111-8111-111111111111',
+  } });
+  expect(response.status).toBe(101);
+  const socket = response.webSocket!;
+  socket.accept();
+  const commands: any[] = [];
+  const ready = new Promise<void>(resolve => socket.addEventListener('message', event => {
+    const message = JSON.parse(event.data);
+    if (message.type === 'ready') resolve();
+    if (message.type !== 'command') return;
+    commands.push(message);
+    const nativeMatch=apps.find(app=>app.package.startsWith(message.args.app??'__none__'));
+    const legacyKey=(value:string)=>value.normalize('NFD').replace(/\p{M}+/gu,'').toLowerCase().trim();
+    const query=legacyKey(message.args.query??'');
+    const exact=apps.filter(app=>legacyKey(app.name)===query||app.package===message.args.query);
+    const matches=exact.length?exact:apps.filter(app=>legacyKey(app.name).includes(query)||app.package.toLowerCase().includes(query));
+    const result = message.kind === 'list_apps'
+      ? { status: 'verified', total_matches: matches.length, apps:matches.slice(0,message.args.limit??80) }
+      : message.kind === 'status'
+        ? {status:'verified',version:'2.0.1',screen_enabled:true,notifications_enabled:true,overlay_allowed:true,usage_access_allowed:true}
+        : message.kind === 'screen_context'
+          ? {status:'verified',proof_scope:'android_accessibility_semantic_tree',snapshot_id:'legacy-snapshot',package:'com.amoradvisory.salatlille',nodes:[
+            {node_id:'n1',text:message.args.include_text?'PROCHAINE PRIÈRE':''},
+            {node_id:'n2',text:message.args.include_text?'Maghrib':''},
+            {node_id:'n3',text:message.args.include_text?'17:12':''},
+            {node_id:'n4',text:message.args.include_text?'00:20:00':''},
+            {node_id:'n5',password_field:true,text:'secret-test-only'},
+          ]}
+          : message.kind === 'open_app' && nativeMatch
+            ? { status: 'verified', executed: true, foreground_observed: true, package: nativeMatch.package, proof_scope: 'android_activity_foreground' }
+            : { status: 'app_not_found', outcome: 'app_not_found', executed: false };
+    socket.send(JSON.stringify({ type: 'result', id: message.id, result }));
+  }));
+  socket.send(JSON.stringify({ type: 'hello', deviceId: '11111111-1111-4111-8111-111111111111',
+    model: '2510ERA8BG', capabilities: ['status', 'list_apps', 'open_app', 'screen_context'], version: '2.0.1' }));
+  await ready;
+  try { await test(commands); } finally { socket.close(1000, 'Test complete'); }
+}
+
 beforeEach(async () => {
   // Only the external client document is substituted; the OAuth/PKCE flow,
   // stored consent, grant and access tokens all use the real provider.
@@ -341,6 +388,89 @@ describe('MCP test action', () => {
 });
 
 describe('Speed Car 2.1 voice contracts', () => {
+  it('refuses a normalized collision despite legacy native filtering before delivering any opening',async()=>{
+    const {access_token}=await grant();
+    await withLegacyPhone(async commands=>{
+      const result=await mcp(access_token,'tools/call',{name:'phone_open_app',arguments:{command_id:crypto.randomUUID(),app:'ABCTool'}},940);
+      expect(result.result.structuredContent.status).toBe('ambiguous_app');
+      expect(result.result.structuredContent.executed).toBe(false);
+      expect(commands.filter(c=>c.kind==='open_app')).toHaveLength(0);
+    },[{package:'one.app',name:'ABC Tool'},{package:'two.app',name:'A B C Tool'}]);
+  });
+  it('does not open a short exact native match when punctuation hid the requested exact label',async()=>{
+    const {access_token}=await grant();
+    await withLegacyPhone(async commands=>{
+      const result=await mcp(access_token,'tools/call',{name:'phone_open_app',arguments:{command_id:crypto.randomUUID(),app:'A-'}},941);
+      expect(result.result.structuredContent.status).toBe('resolution_unavailable');
+      expect(commands.filter(c=>c.kind==='open_app')).toHaveLength(0);
+    },[{package:'one.app',name:'A'},{package:'two.app',name:'A-'}]);
+  });
+  it('refuses a missing seeded package instead of opening a prefix clone and keeps the receipt', async () => {
+    const { access_token } = await grant();
+    await withLegacyPhone(async commands => {
+      const command_id=crypto.randomUUID();
+      const call={name:'phone_open_app',arguments:{command_id,app:'Salat-Lille'}};
+      const first=await mcp(access_token,'tools/call',call,910);
+      expect(first.result.structuredContent.status).toBe('app_not_found');
+      expect(first.result.structuredContent.executed).toBe(false);
+      expect(commands.filter(c=>c.kind==='open_app')).toHaveLength(0);
+      const stored=await mcp(access_token,'tools/call',{name:'phone_command_status',arguments:{command_id}},911);
+      expect(stored.result.structuredContent.status).toBe('app_not_found');
+      await mcp(access_token,'tools/call',call,912);
+      expect(commands.filter(c=>c.kind==='open_app')).toHaveLength(0);
+    },[{package:'com.amoradvisory.salatlille.clone',name:'Salât Lille'}]);
+  });
+  it('reports unknown service binding on a legacy status instead of equating the local toggle with readiness', async () => {
+    const {access_token}=await grant();
+    await withLegacyPhone(async()=>{
+      const result=await mcp(access_token,'tools/call',{name:'phone_status',arguments:{}},920);
+      expect(result.result.structuredContent.screen_access.local_toggle_enabled).toBe(true);
+      expect(result.result.structuredContent.screen_access.android_service_enabled).toBeNull();
+      expect(result.result.structuredContent.screen_access.service_bound).toBeNull();
+      expect(result.result.structuredContent.screen_access.state).toBe('service_state_unknown');
+    });
+  });
+  it('adapts a legacy line request without elevating proof or storing private text in the durable receipt', async () => {
+    const {access_token}=await grant('speedcar:test speedcar:phone speedcar:screen');
+    await withLegacyPhone(async commands=>{
+      const command_id=crypto.randomUUID();
+      const result=await mcp(access_token,'tools/call',{name:'phone_get_screen_context',arguments:{command_id,format:'lines',max_lines:10}},930);
+      const read=result.result.structuredContent;
+      expect(read.lines).toEqual(['PROCHAINE PRIÈRE','Maghrib','17:12','00:20:00']);
+      expect(read.proof_scope).toBe('android_accessibility_semantic_tree');
+      expect(read.nodes).toBeUndefined();
+      expect(commands.find(c=>c.kind==='screen_context').args.include_text).toBe(true);
+      expect(commands.find(c=>c.kind==='screen_context').args.max_nodes).toBe(80);
+      const replay=await mcp(access_token,'tools/call',{name:'phone_command_status',arguments:{command_id}},931);
+      expect(replay.result.structuredContent.lines).toEqual(read.lines);
+      await runInDurableObject((env as any).PHONE_LINK.getByName('speed-car-owner'),async (_instance,state)=>{
+        const stored=await state.storage.get<any>('command:'+command_id);
+        expect(JSON.stringify(stored)).not.toContain('Maghrib');
+        expect(JSON.stringify(stored)).not.toContain('00:20:00');
+        expect(JSON.stringify(stored)).not.toContain('secret-test-only');
+      });
+    });
+  });
+  it('resolves a dash variant on the legacy phone without repeating the opening effect', async () => {
+    const { access_token } = await grant();
+    const apps=[{package:'com.amoradvisory.salatlille',name:'Salât Lille'}];
+    await withLegacyPhone(async commands => {
+      const command_id = crypto.randomUUID();
+      const args = { name: 'phone_open_app', arguments: { command_id, app: 'Salat-Lille' } };
+      const first = await mcp(access_token, 'tools/call', args, 901);
+      expect(first.result.structuredContent.status).toBe('verified');
+      expect(first.result.structuredContent.foreground_observed).toBe(true);
+      expect(first.result.structuredContent.package).toBe('com.amoradvisory.salatlille');
+      apps.splice(0);
+      const replay = await mcp(access_token, 'tools/call', args, 902);
+      expect(replay.result.structuredContent.status).toBe('verified');
+      expect(commands.filter(c => c.kind === 'open_app')).toHaveLength(1);
+      expect(commands.find(c => c.kind === 'open_app').id).toBe(command_id);
+      expect(commands.filter(c=>c.kind==='list_apps')).toHaveLength(1);
+      const conflict=await mcp(access_token,'tools/call',{...args,arguments:{command_id,app:'Salât Lille'}},903);
+      expect(conflict.result.structuredContent.reason).toBe('command_id_conflict');
+    },apps);
+  });
   it('never reports a relay self-test without the state of the phone link', async () => {
     await runInDurableObject((env as any).PHONE_LINK.getByName('speed-car-owner'), async (_instance, state) => {
       for (const socket of state.getWebSockets()) socket.close(1000, 'Test reset');

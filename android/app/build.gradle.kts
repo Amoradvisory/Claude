@@ -11,8 +11,8 @@ android {
         applicationId = "fr.speedcar.app"
         minSdk = 31
         targetSdk = 35
-        versionCode = 7
-        versionName = "2.1.0"
+        versionCode = 8
+        versionName = "2.1.1"
         testInstrumentationRunner = "android.test.InstrumentationTestRunner"
     }
     compileOptions {
