@@ -39,28 +39,42 @@ export const mcpApi = {
     }
     const state = env.OWNER_STATE.getByName(owner);
     const handler = createMcpHandler(() => {
-      const server = new McpServer({ name: 'speed-car', version: '2.0.2' }, {
-        instructions: 'Speed Car pilote uniquement le téléphone appairé. Un appel spécialisé par demande. GPS : phone_get_location, Google Maps : phone_open_maps, navigation : phone_navigate. Nom d’application : phone_open_app. Ne jamais inventer maison, un destinataire ou des coordonnées. Les données sensibles sont temporaires ; permission_required exige une autorisation volontaire, jamais un contournement. Un intent de navigation ne prouve pas un itinéraire calculé. Actions composées : appels successifs avec reçus, aucun effet incertain rejoué. Lecture d’écran/notifications seulement sur demande explicite. Pour une hausse du volume, phone_media_volume_up ; pour YouTube dans Brave, phone_open_youtube_brave. Générer un nouvel UUID command_id pour chaque demande volontaire et conserver le même en cas de reprise de transport. Si le résultat est indeterminate, lire phone_command_status avec ce même ID, sans rejouer avec un nouvel ID. Confirmer seulement les faits du reçu : un index média ne prouve pas le niveau acoustique ; Brave repris ne prouve pas le chargement de YouTube. Le test du relais ne prouve pas une action du téléphone. phone_offline : le dire en une phrase avec sa cause (diagnosis), sans réessayer en boucle ; n’utiliser une autre voie (PC/ADB) qu’en l’annonçant, jamais en la présentant comme Speed Car.',
+      const server = new McpServer({ name: 'speed-car', version: '2.1.0' }, {
+        instructions: 'Speed Car pilote uniquement le téléphone appairé. Un appel spécialisé par demande. GPS : phone_get_location, Google Maps : phone_open_maps, navigation : phone_navigate. Nom d’application : phone_open_app. Ne jamais inventer maison, un destinataire ou des coordonnées. Les données sensibles sont temporaires ; permission_required exige une autorisation volontaire, jamais un contournement. Un intent de navigation ne prouve pas un itinéraire calculé. Actions composées : appels successifs avec reçus, aucun effet incertain rejoué. Lecture d’écran/notifications seulement sur demande explicite. Pour une hausse du volume, phone_media_volume_up ; pour YouTube dans Brave, phone_open_youtube_brave. Générer un nouvel UUID command_id pour chaque demande volontaire et conserver le même en cas de reprise de transport. Si le résultat est indeterminate, lire phone_command_status avec ce même ID, sans rejouer avec un nouvel ID. Confirmer seulement les faits du reçu : un index média ne prouve pas le niveau acoustique ; Brave repris ne prouve pas le chargement de YouTube. Le test du relais ne prouve pas une action du téléphone. phone_offline : le dire en une phrase avec sa cause (diagnosis, champ say), sans réessayer en boucle ; n’utiliser une autre voie (PC/ADB) qu’en l’annonçant, jamais en la présentant comme Speed Car. Trois faits distincts à ne jamais confondre : relais joignable (speedcar_test_action), téléphone relié (phone_link connected ou phone_status verified), application réellement au premier plan (foreground_observed true). Voix et conduite : une phrase courte par réponse, aucune demande de regarder ou de toucher l’écran ; si une action exige un geste ou une autorisation, dire qu’elle se fera à l’arrêt. « Ouvre X et dis-moi… » : phone_open_app_and_read, puis répondre d’après lines seulement. « Lis ce qui s’affiche » : phone_get_screen_context format lines. « Reviens à ChatGPT » : phone_open_app app ChatGPT. Musique : phone_open_url (recherche), phone_ui_action click sur le titre voulu, puis phone_media_status ; n’annoncer la lecture que si playing est true ; pause et reprise : phone_media_pause, phone_media_play.',
       });
+      // The relay answering says nothing about the phone: every relay self-test states the phone link too.
+      const linkLine = async (): Promise<{ fields: Record<string, unknown>; text: string }> => {
+        if (!authenticated.auth?.scope.includes(phoneScope)) return { fields: {}, text: 'État de la liaison du téléphone non lu (droit speedcar:phone absent).' };
+        try {
+          const s = await env.PHONE_LINK.getByName(owner).linkSummary() as Record<string, any>;
+          const text = s.phone_link === 'connected' ? 'Liaison du téléphone : présente.'
+            : s.phone_link === 'connected_silent' ? `Liaison du téléphone : ouverte mais silencieuse depuis ${s.last_sign_of_life_s} s (téléphone probablement en veille) ; phone_status le vérifiera.`
+            : s.phone_link === 'never_connected' ? 'Liaison du téléphone : ABSENTE, le téléphone ne s’est jamais relié. Aucune action sur le téléphone n’est possible tant que Speed Car n’y est pas ouvert et activé.'
+            : `Liaison du téléphone : ABSENTE${typeof s.offline_for_s === 'number' ? ` depuis ${s.offline_for_s} s` : ''}. Aucune action sur le téléphone n’est possible tant que Speed Car n’y affiche pas « Connecté au relais ».`;
+          return { fields: { phone: s }, text };
+        } catch { return { fields: {}, text: 'État de la liaison du téléphone illisible.' }; }
+      };
       server.registerTool('speedcar_test_action', {
         title: 'Tester une action Speed Car',
-        description: 'Écrit un nouveau reçu de test dans le relais Speed Car et relit le résultat. Utiliser pour « teste Speed Car ». Ne modifie pas le téléphone. Confirmer uniquement le test du relais.',
+        description: 'Écrit un nouveau reçu de test dans le relais Speed Car et relit le résultat. Utiliser pour « teste Speed Car ». Ne modifie pas le téléphone. Indique aussi si le téléphone est relié (phone.phone_link) : un test du relais réussi avec une liaison absente signifie que rien ne peut être fait sur le téléphone.',
         inputSchema: z.strictObject({}),
         annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
       }, async () => {
         const receipt = await state.writeReceipt();
-        return { structuredContent: { status: 'verified', proof_scope: 'relay_storage_only', receipt },
-          content: [{ type: 'text', text: `Test du relais réussi, reçu ${receipt.sequence} enregistré ; le téléphone n'est pas encore commandé.` }] };
+        const link = await linkLine();
+        return { structuredContent: { status: 'verified', proof_scope: 'relay_storage_only', receipt, ...link.fields },
+          content: [{ type: 'text', text: `Test du relais réussi, reçu ${receipt.sequence} enregistré. Ce test ne commande pas le téléphone. ${link.text}` }] };
       });
       server.registerTool('speedcar_status', {
         title: 'Lire le dernier test Speed Car',
-        description: 'Lit le dernier reçu conservé par le relais. Ne teste pas le téléphone ni la disponibilité du mode vocal.',
+        description: 'Lit le dernier reçu conservé par le relais et l’état de la liaison du téléphone (phone.phone_link), sans rien envoyer au téléphone. Ne teste pas la disponibilité du mode vocal.',
         inputSchema: z.strictObject({}),
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       }, async () => {
         const stored = await state.readStatus();
-        return { structuredContent: { ...stored, android_control: 'device_link_available', proof_scope: 'relay_storage_only' },
-          content: [{ type: 'text', text: stored.last_receipt ? `Dernier test du relais : reçu ${stored.count}, ${stored.last_receipt.written_at}.` : 'Aucun test enregistré ; le téléphone n’est pas encore commandé.' }] };
+        const link = await linkLine();
+        return { structuredContent: { ...stored, android_control: 'device_link_available', proof_scope: 'relay_storage_only', ...link.fields },
+          content: [{ type: 'text', text: `${stored.last_receipt ? `Dernier test du relais : reçu ${stored.count}, ${stored.last_receipt.written_at}.` : 'Aucun test enregistré.'} ${link.text}` }] };
       });
       const phone = env.PHONE_LINK.getByName(owner);
       const permitted = () => authenticated.auth?.scope.includes(phoneScope);

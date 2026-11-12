@@ -340,6 +340,44 @@ describe('MCP test action', () => {
   });
 });
 
+describe('Speed Car 2.1 voice contracts', () => {
+  it('never reports a relay self-test without the state of the phone link', async () => {
+    await runInDurableObject((env as any).PHONE_LINK.getByName('speed-car-owner'), async (_instance, state) => {
+      for (const socket of state.getWebSockets()) socket.close(1000, 'Test reset');
+      await state.storage.deleteAll();
+    });
+    const { access_token } = await grant();
+    const test = await mcp(access_token, 'tools/call', { name: 'speedcar_test_action', arguments: {} }, 31);
+    expect(test.result.structuredContent.status).toBe('verified');
+    expect(test.result.structuredContent.phone.phone_link).toBe('never_connected');
+    expect(test.result.content[0].text).toContain('Liaison du téléphone : ABSENTE');
+    const status = await mcp(access_token, 'tools/call', { name: 'speedcar_status', arguments: {} }, 32);
+    expect(status.result.structuredContent.phone.proof_scope).toBe('relay_link_state_only');
+    expect(status.result.content[0].text).toContain('Liaison du téléphone');
+  });
+  it('exposes the open-and-read, foreground and bounded click contracts', async () => {
+    const token = await grant('speedcar:test speedcar:phone speedcar:screen offline_access');
+    const listing = await mcp(token.access_token, 'tools/list');
+    const tool = (name: string) => listing.result.tools.find((t: any) => t.name === name);
+    expect(tool('phone_open_app_and_read').inputSchema.required).toEqual(expect.arrayContaining(['command_id', 'app']));
+    expect(tool('phone_open_app_and_read').annotations.readOnlyHint).toBe(false);
+    expect(tool('phone_get_foreground_app').annotations.readOnlyHint).toBe(true);
+    expect(tool('phone_ui_action').inputSchema.properties.action.enum).toContain('click');
+    expect(tool('phone_ui_action').inputSchema.required ?? []).not.toContain('snapshot_id');
+    expect(tool('phone_get_screen_context').inputSchema.properties.format.enum).toEqual(['nodes', 'lines']);
+    const offline = await mcp(token.access_token, 'tools/call', { name: 'phone_open_app_and_read', arguments: { command_id: crypto.randomUUID(), app: 'Salât Lille' } }, 33);
+    expect(offline.result.structuredContent.status).toBe('phone_offline');
+    expect(offline.result.structuredContent.executed).toBe(false);
+  });
+  it('asks for the screen right before opening and reading an application', async () => {
+    const token = await grant();
+    const response = await SELF.fetch(`${origin}/mcp`, { method: 'POST', headers: { authorization: `Bearer ${token.access_token}`, 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 34, method: 'tools/call', params: { name: 'phone_open_app_and_read', arguments: { command_id: crypto.randomUUID(), app: 'Salât Lille' } } }) });
+    expect(response.status).toBe(403);
+    expect(response.headers.get('www-authenticate')).toContain('speedcar:screen');
+  });
+});
+
 describe('Speed Car 2 assistant contracts', () => {
   it('exposes Maps GPS media apps and device tools while retaining the original seven', async () => {
     const token = await grant();

@@ -9,7 +9,7 @@ export interface PhoneCommand {
 interface Entry extends PhoneCommand {
   createdAt: number; status: string; argsHash?:string; result?: Record<string, unknown>;
 }
-interface Attachment { deviceId: string; tokenHash: string; ready: boolean; model?: string; kinds?:string[]; heartbeatMs?: number; readyAt?: number }
+interface Attachment { deviceId: string; tokenHash: string; ready: boolean; model?: string; version?: string; kinds?:string[]; heartbeatMs?: number; readyAt?: number; probe?: boolean }
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 // Application heartbeat answered by the runtime without waking the object.
 export const HEARTBEAT_PING = '{"type":"ping"}';
@@ -19,6 +19,11 @@ export const HEARTBEAT_PONG = '{"type":"pong"}';
 export const RECONNECT_GRACE_MS = 4000;
 // Only a recent drop is worth waiting for; a phone gone for longer is refused at once.
 export const RECENT_DROP_MS = 120_000;
+// A sleeping phone stops its heartbeat although its connection is intact. Before a silent
+// socket is declared dead, a phone that announced the `probe` feature is asked for one
+// proof of life and gets this long to give it.
+export const HEARTBEAT_PROBE = '{"type":"probe"}';
+export const PROBE_WAIT_MS = 1500;
 const clampHeartbeat = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? Math.min(60_000, Math.max(1000, Math.round(value))) : undefined;
 
 export class PhoneLink extends DurableObject<Env> {
@@ -55,20 +60,39 @@ export class PhoneLink extends DurableObject<Env> {
   private lastSeen(socket: WebSocket, a: Attachment): number {
     return Math.max(this.ctx.getWebSocketAutoResponseTimestamp(socket)?.getTime() ?? 0, a.readyAt ?? 0);
   }
+  private silent(socket: WebSocket, a: Attachment): boolean {
+    return Boolean(a.heartbeatMs) && Date.now() - this.lastSeen(socket, a) > 3 * a.heartbeatMs! + 2000;
+  }
+  private drop(socket: WebSocket, a: Attachment): void {
+    socket.serializeAttachment({ ...a, ready: false });
+    try { socket.close(4000, 'Heartbeat timeout'); } catch { /* already closing */ }
+    void this.ctx.storage.put('last_disconnect', { at: Date.now(), code: 4000, reason: 'heartbeat_timeout' });
+  }
   private activeSocket(): WebSocket | undefined {
     return this.ctx.getWebSockets().find(socket => {
       const a = socket.deserializeAttachment() as Attachment | undefined;
       if (!(socket.readyState === 1 && a?.ready && a.deviceId === this.env.PHONE_DEVICE_ID && a.tokenHash === this.env.PHONE_TOKEN_HASH)) return false;
-      // Phones that announce a heartbeat and then go silent hold a half-open
-      // socket (network switch, tunnel): close it instead of sending into the void.
-      if (a.heartbeatMs && Date.now() - this.lastSeen(socket, a) > 3 * a.heartbeatMs + 2000) {
-        socket.serializeAttachment({ ...a, ready: false });
-        try { socket.close(4000, 'Heartbeat timeout'); } catch { /* already closing */ }
-        void this.ctx.storage.put('last_disconnect', { at: Date.now(), code: 4000, reason: 'heartbeat_timeout' });
-        return false;
-      }
+      // Phones that announce a heartbeat and then go silent may hold a half-open
+      // socket (network switch, tunnel). One that can be probed is judged by
+      // confirmAlive() just before use; the others are closed here.
+      if (this.silent(socket, a) && !a.probe) { this.drop(socket, a); return false; }
       return true;
     });
+  }
+  // A silent socket is either half-open or a sleeping phone. Ask once: an awake
+  // or woken phone answers with a heartbeat the runtime timestamps.
+  private async confirmAlive(socket: WebSocket): Promise<boolean> {
+    const a = socket.deserializeAttachment() as Attachment;
+    if (!this.silent(socket, a)) return true;
+    const before = this.lastSeen(socket, a);
+    try { socket.send(HEARTBEAT_PROBE); } catch { this.drop(socket, a); return false; }
+    const until = Date.now() + PROBE_WAIT_MS;
+    while (Date.now() < until) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      if (this.lastSeen(socket, a) > before) return true;
+    }
+    this.drop(socket, a);
+    return false;
   }
   private async waitForSocket(until: number): Promise<WebSocket | undefined> {
     let socket = this.activeSocket();
@@ -87,7 +111,10 @@ export class PhoneLink extends DurableObject<Env> {
       last_connected_at: link ? new Date(link.at).toISOString() : null,
       offline_for_s: gone && (!link || gone.at >= link.at) ? Math.round((Date.now() - gone.at) / 1000) : null,
       last_close: gone ? { code: gone.code ?? null, reason: gone.reason ?? null } : null,
-      note: 'La liaison Speed Car du téléphone est absente : application arrêtée par le système, réseau du téléphone coupé ou reconnexion en cours. Aucune commande envoyée.' };
+      note: 'La liaison Speed Car du téléphone est absente : application arrêtée par le système, réseau du téléphone coupé ou reconnexion en cours. Aucune commande envoyée.',
+      say: diagnosis === 'phone_never_connected'
+        ? 'Le téléphone ne s’est jamais relié à Speed Car depuis la remise à zéro du relais. Ouvre Speed Car sur le téléphone et active-le.'
+        : 'Le téléphone n’est pas relié à Speed Car. Ouvre l’application Speed Car sur le téléphone : elle doit afficher « Connecté au relais ».' };
   }
 
   async webSocketMessage(socket: WebSocket, raw: string | ArrayBuffer): Promise<void> {
@@ -100,9 +127,12 @@ export class PhoneLink extends DurableObject<Env> {
       if (data.deviceId !== a.deviceId || data.model !== (this.env.PHONE_MODEL ?? '2510ERA8BG')) {
         socket.close(1008, 'Device identity mismatch'); return;
       }
-      a.ready = true; a.model = data.model; a.readyAt = Date.now(); a.heartbeatMs = clampHeartbeat(data.heartbeat_ms);a.kinds=Array.isArray(data.capabilities)?data.capabilities.filter((k:unknown)=>typeof k==='string'&&kindAllowed(k)).slice(0,64):oldKinds; socket.serializeAttachment(a);
-      await this.ctx.storage.put('last_link', { model: data.model, at: Date.now(), state: 'connected' });
-      socket.send(JSON.stringify({ type: 'ready', deviceId: a.deviceId, serverTime: Date.now() }));
+      a.ready = true; a.model = data.model; a.readyAt = Date.now(); a.heartbeatMs = clampHeartbeat(data.heartbeat_ms);
+      a.version = typeof data.version === 'string' ? data.version.slice(0, 24) : undefined;
+      a.probe = Array.isArray(data.features) && data.features.includes('probe');
+      a.kinds=Array.isArray(data.capabilities)?data.capabilities.filter((k:unknown)=>typeof k==='string'&&kindAllowed(k)).slice(0,64):oldKinds; socket.serializeAttachment(a);
+      await this.ctx.storage.put('last_link', { model: data.model, at: Date.now(), state: 'connected', version: a.version ?? null });
+      socket.send(JSON.stringify({ type: 'ready', deviceId: a.deviceId, serverTime: Date.now(), features: ['probe'] }));
       return;
     }
     if (data.type !== 'result' || !a.ready || !uuid.test(data.id ?? '') || !data.result || typeof data.result !== 'object') return;
@@ -137,6 +167,26 @@ export class PhoneLink extends DurableObject<Env> {
       heartbeat_ms: a?.heartbeatMs ?? null, heartbeat_age_ms: socket && a ? Date.now() - this.lastSeen(socket, a) : null };
   }
 
+  // Read-only view for the relay self-tests, so that "relay reachable" is never
+  // reported without saying whether the phone itself is linked. Sends nothing to the phone.
+  async linkSummary(): Promise<Record<string, unknown>> {
+    const socket = this.activeSocket();
+    const a = socket?.deserializeAttachment() as Attachment | undefined;
+    const link = await this.ctx.storage.get<{ at: number; version?: string | null }>('last_link');
+    const raw = await this.ctx.storage.get<number | { at: number; code?: number; reason?: string }>('last_disconnect');
+    const gone = typeof raw === 'number' ? { at: raw } : raw;
+    const quiet = socket && a ? this.silent(socket, a) : false;
+    return {
+      phone_link: !socket ? (link ? 'absent' : 'never_connected') : quiet ? 'connected_silent' : 'connected',
+      phone_app_version: a?.version ?? link?.version ?? null,
+      last_connected_at: link ? new Date(link.at).toISOString() : null,
+      last_sign_of_life_s: socket && a ? Math.round((Date.now() - this.lastSeen(socket, a)) / 1000) : null,
+      offline_for_s: !socket && gone && (!link || gone.at >= link.at) ? Math.round((Date.now() - gone.at) / 1000) : null,
+      last_close: !socket && gone ? { code: gone.code ?? null, reason: gone.reason ?? null } : null,
+      proof_scope: 'relay_link_state_only',
+    };
+  }
+
   async commandStatus(id: string, allowedScopes?:string[]): Promise<Record<string, unknown>> {
     if (!uuid.test(id)) return { status: 'rejected', reason: 'invalid_command_id' };
     const e = await this.ctx.storage.get<Entry>(`command:${id}`);
@@ -163,7 +213,12 @@ export class PhoneLink extends DurableObject<Env> {
     const gone = this.activeSocket() ? undefined : await this.ctx.storage.get<number | { at: number }>('last_disconnect');
     const droppedAt = typeof gone === 'number' ? gone : gone?.at;
     const grace = droppedAt !== undefined && waitStart - droppedAt < RECENT_DROP_MS ? RECONNECT_GRACE_MS : 0;
-    const socket = await this.waitForSocket(Math.min(waitStart + grace, command.expiresAt - 1000));
+    let socket = await this.waitForSocket(Math.min(waitStart + grace, command.expiresAt - 1000));
+    if (socket && !(await this.confirmAlive(socket))) {
+      // The silent socket was just closed; the phone, if it is there, reconnects within the grace period.
+      socket = await this.waitForSocket(Math.min(Date.now() + RECONNECT_GRACE_MS, command.expiresAt - 1000));
+      if (socket && !(await this.confirmAlive(socket))) socket = undefined;
+    }
     if (!socket) return this.offline(command.id, Date.now() - waitStart);
     const advertised=socket.deserializeAttachment() as Attachment;
     if(!(advertised.kinds??oldKinds).includes(command.kind))return {status:'unsupported_capability',command_id:command.id,executed:false,proof_scope:'device_capability_advertisement'};

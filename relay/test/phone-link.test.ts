@@ -186,3 +186,52 @@ describe('Reconnection grace and heartbeat liveness', () => {
     expect(status.connected).toBe(true); expect(status.last_disconnect).toBeNull();
   });
 });
+
+describe('Sleeping phone, probe before drop, and relay self-test honesty (2.1.0)', () => {
+  async function connectWith(extra: Record<string, unknown>) {
+    const response = await SELF.fetch('https://speedcar.test/device', { headers });
+    const socket = response.webSocket!; socket.accept();
+    const ready = next(socket, 'ready');
+    socket.send(JSON.stringify({ type: 'hello', deviceId: id, model: '2510ERA8BG', heartbeat_ms: 1000, capabilities: oldKinds, ...extra }));
+    return { socket, ready: await ready };
+  }
+  it('tells a probe-capable phone that the relay can probe', async () => {
+    const { socket, ready } = await connectWith({ features: ['probe'], version: '2.1.0' });
+    expect(ready.features).toContain('probe');
+    socket.close();
+  });
+  it('wakes a silent but connected phone with a probe and then delivers the command', async () => {
+    const { socket } = await connectWith({ features: ['probe'], version: '2.1.0' });
+    let probes = 0, delivered = 0;
+    socket.addEventListener('message', event => {
+      const value = JSON.parse(event.data);
+      if (value.type === 'probe') { probes++; socket.send('{"type":"ping"}'); }
+      if (value.type === 'command') { delivered++; socket.send(JSON.stringify({ type: 'result', id: value.id, result: { status: 'verified', before: 1, after: 2 } })); }
+    });
+    await new Promise(resolve => setTimeout(resolve, 5200));
+    expect((await link().linkSummary()).phone_link).toBe('connected_silent');
+    const result = await link().execute({ id: crypto.randomUUID(), kind: 'media_volume_up', args: { steps: 1 }, expiresAt: Date.now() + 4000 });
+    expect(result.status).toBe('verified'); expect(probes).toBe(1); expect(delivered).toBe(1);
+    expect((await link().linkSummary()).phone_link).toBe('connected');
+    socket.close();
+  }, 15_000);
+  it('closes a probe-capable socket that stays mute and sends no command into it', async () => {
+    const { socket } = await connectWith({ features: ['probe'] });
+    let delivered = 0; socket.addEventListener('message', event => { if (JSON.parse(event.data).type === 'command') delivered++; });
+    await new Promise(resolve => setTimeout(resolve, 5200));
+    const result = await link().execute({ id: crypto.randomUUID(), kind: 'media_volume_up', args: { steps: 1 }, expiresAt: Date.now() + 3500 });
+    expect(result.status).toBe('phone_offline'); expect(result.diagnosis).toBe('phone_heartbeat_lost');
+    expect(result.say).toContain('Speed Car'); expect(delivered).toBe(0);
+  }, 15_000);
+  it('summarises the phone link without sending anything to the phone', async () => {
+    expect((await link().linkSummary()).phone_link).toBe('never_connected');
+    const { socket } = await connectWith({ features: ['probe'], version: '2.1.0' });
+    let frames = 0; socket.addEventListener('message', () => frames++);
+    const up = await link().linkSummary();
+    expect(up.phone_link).toBe('connected'); expect(up.phone_app_version).toBe('2.1.0'); expect(up.offline_for_s).toBeNull();
+    socket.close(1001, 'gone'); await new Promise(resolve => setTimeout(resolve, 150));
+    const down = await link().linkSummary();
+    expect(down.phone_link).toBe('absent'); expect(down.offline_for_s).toBeTypeOf('number'); expect(down.phone_app_version).toBe('2.1.0');
+    expect(frames).toBe(0);
+  });
+});

@@ -18,7 +18,7 @@ export default {
       return env.PHONE_LINK.getByName(owner).fetch(request);
     }
     if (url.pathname === '/health' && request.method === 'GET') return Response.json({
-      service: 'speed-car', version: '2.0.2', configured: Boolean(origin),
+      service: 'speed-car', version: '2.1.0', configured: Boolean(origin),
       stage: 'device-link', android_control: 'available_when_paired', voice_test: 'not_observed',
     }, { status: origin ? 200 : 503, headers: { 'cache-control': 'no-store' } });
     if (!origin) return new Response('Configuration Speed Car manquante', { status: 503 });
