@@ -4,6 +4,10 @@ Ce document s'adresse à l'agent qui travaille **sur le PC** (Claude Code local 
 
 Règles : aucune autorisation Android accordée par ADB ; aucun secret lu, affiché ou recopié ; ne fermer ni ChatGPT, ni Brave, ni Opera, ni une session d'un autre agent ; pas de boucle de sondage sur le PC à 2 cœurs.
 
+**Reprise depuis le PC le 12/11/2026 : relais déployé et relu en 2.1.0 à 13:14:09 UTC ; téléphone encore en 2.0.1 avant installation. Tests du relais 57/57 + 3/3 et TypeScript vérifiés sur Windows ; trois liaisons et cinq noms de secrets inchangés, migration `v2-phone-link` conservée. Le reçu 10 obtenu depuis ce chat Codex confirme `phone.phone_link=connected` ; il ne constitue pas T1 en nouvelle conversation ChatGPT. Actualisation des outils demandée à Amor, réponse attendue. Aucun T1 à T12 vocal validé à ce stade. Détails dans la section de reprise locale du rapport.**
+
+**Arrêt à 13:28:52 UTC : APK 2.1.0/code 7 construit, 63 tests JVM réussis, lint 0 erreur et 20 avertissements. Certificat de l'APK `a067c5c90bdbd611714c2519a04a2529079490ddddbd26781b0a72e659a3dbc8`, différent de la référence exigée `0a11ba52371276d2a3d5cdef98b87971c2d609921c240e8040dca20f0c69fc94`. Installation bloquée avant toute tentative ; aucune désinstallation. Aucun essai vocal de la recette n'a eu lieu. Les statuts ci-dessous décrivent cet arrêt et ne remplacent pas des observations sur le téléphone.**
+
 ## 1. Avant de toucher à quoi que ce soit
 
 | Étape | Commande | À noter |
@@ -61,7 +65,7 @@ Le 12/11/2026 à 12:26 UTC, une troisième session a été lancée pour cette re
 - **Phrase** : « Teste Speed Car, puis donne-moi l'état du téléphone. »
 - **Composants** : `speedcar_test_action`, `phone_status`.
 - **Attendu** : `phone.phone_link = connected` ; `phone_status` `verified`, `version 2.1.0`.
-- **Résultat observé** : non testé.
+- **Résultat observé** : **bloqué**, 12/11/2026, arrêt de préparation à 13:28:52 UTC : APK 2.1.0 non installé, certificat différent de la référence exigée. Aucune nouvelle conversation ChatGPT observée. Preuve du blocage : `10-android-build.json` dans le dossier local de preuves ; les reçus de ce chat Codex concernent l'ancienne application et ne valident pas T1.
 - **Preuve à garder** : les deux réponses, sans donnée privée.
 - **Si écart** : lire `diagnosis`, `offline_for_s`, `last_close` dans le refus, puis l'écran Speed Car.
 
@@ -71,7 +75,7 @@ Le 12/11/2026 à 12:26 UTC, une troisième session a été lancée pour cette re
 - **Gestes** : (a) écran éteint 10 min ; (b) mode avion 30 s ; (c) Wi-Fi coupé, donc données mobiles ; (d) redémarrage du téléphone, sans ouvrir Speed Car.
 - **Phrase après chaque geste** : « Quel est l'état du téléphone ? »
 - **Attendu** : `verified` dès le premier appel pour (a), (b), (c). Pour (d) : `verified` si le démarrage automatique HyperOS est accordé ; sinon `phone_offline` avec une durée, puis `verified` au plus tard 15 min après.
-- **Résultat observé** : non testé. Noter séparément a, b, c, d.
+- **Résultat observé** : **non testé**, 12/11/2026 : (a) veille 10 min non testée ; (b) mode avion non testé ; (c) données mobiles non testées ; (d) redémarrage non testé. Recette arrêtée avant T1 par le blocage de signature relevé à 13:28:52 UTC. Aucune preuve de reprise 2.1.0.
 - **Si écart sur (a)** : relever `phone.last_sign_of_life_s` et `link.last_drop`.
 
 ### T3. Salât Lille au premier plan
@@ -80,7 +84,7 @@ Le 12/11/2026 à 12:26 UTC, une troisième session a été lancée pour cette re
 - **Phrase** : « Ouvre Salât Lille. »
 - **Composants** : `phone_open_app`.
 - **Attendu** : `status verified`, `foreground_observed true`, `package com.amoradvisory.salatlille`. Amor voit l'application.
-- **Résultat observé** : non testé.
+- **Résultat observé** : **bloqué**, 12/11/2026, arrêt de préparation à 13:28:52 UTC : APK 2.1.0 non installé à cause du certificat différent. Aucune commande d'ouverture de Salât Lille exécutée dans cette recette ; aucune preuve de premier plan. Preuve du blocage : `10-android-build.json`.
 - **Si écart** : `executed` avec `likely_cause` → réglage HyperOS « fenêtres en arrière-plan ». `permission_required` → superposition.
 
 ### T4. Lire le compte à rebours
@@ -89,7 +93,7 @@ Le 12/11/2026 à 12:26 UTC, une troisième session a été lancée pour cette re
 - **Phrase** : « Ouvre Salât Lille et dis-moi dans combien de temps est la prochaine prière. »
 - **Composants** : `phone_open_app_and_read`.
 - **Attendu** : `screen_read true`, `lines` contenant le nom de la prière et l'heure ou le compte à rebours ; la réponse parlée reprend ces valeurs.
-- **Résultat observé** : non testé.
+- **Résultat observé** : **bloqué**, 12/11/2026, arrêt de préparation à 13:28:52 UTC : APK 2.1.0 non installé à cause du certificat différent, T3 non vérifié. Aucune lecture de Salât Lille ni réponse vocale comparée à l'écran. Preuve du blocage : `10-android-build.json`.
 - **Contrôle** : comparer la phrase de ChatGPT à l'écran. Toute valeur absente de `lines` est un échec.
 - **Si écart** : `lines` vide → l'application expose peut-être son contenu avec retard ; relancer une fois et noter `nodes_scanned`. Texte masqué (`[code masqué]`) → un nombre de 4 à 8 chiffres ou un mot réservé déclenche le filtre de confidentialité : le signaler, ne pas l'affaiblir sans accord.
 
@@ -98,7 +102,7 @@ Le 12/11/2026 à 12:26 UTC, une troisième session a été lancée pour cette re
 - **Précondition** : T4, « Conversations en arrière-plan » activé.
 - **Phrase** : celle de T4, puis, Salât Lille toujours devant : « Et la suivante ? »
 - **Attendu** : ChatGPT entend et répond sans qu'Amor revienne à ChatGPT.
-- **Résultat observé** : non testé.
+- **Résultat observé** : **non testé**, 12/11/2026 : T4 bloqué avant installation Android (certificat différent, constat à 13:28:52 UTC). Aucune session vocale ni continuité du micro observée.
 - **Si écart** : limite de ChatGPT ou d'Android, hors de portée de Speed Car. Alternative à tester alors : « Sans changer d'écran, que dit la notification de Salât Lille ? » (`phone_get_notifications`, `package_name com.amoradvisory.salatlille`). Noter si la notification porte l'information.
 
 ### T6. Brave et musique
@@ -107,7 +111,7 @@ Le 12/11/2026 à 12:26 UTC, une troisième session a été lancée pour cette re
 - **Phrases** : « Ouvre Brave et mets du lofi. » ; « Mets pause. » ; « Reprends. » ; « Reviens à ChatGPT. »
 - **Composants** : `phone_open_url`, `phone_get_screen_context` (lignes), `phone_ui_action` (`click`), `phone_media_status`, `phone_media_pause`, `phone_media_play`, `phone_open_app`.
 - **Attendu** : lecture annoncée seulement si `playing true` avec un titre ; pause et reprise `verified`.
-- **Résultat observé** : non testé.
+- **Résultat observé** : **non testé**, 12/11/2026 : recette arrêtée au contrôle de signature à 13:28:52 UTC. Aucune ouverture de Brave, lecture, pause ou reprise exécutée.
 - **À consigner** : la valeur `audio_mode` de `phone_status` pendant la conversation vocale ; si la musique baisse ou coupe la voix de ChatGPT (partage du son) ; si Brave publie bien une session média.
 - **Si écart** : `call_in_progress` pendant la voix → relever `audio_mode`. Appui refusé `sensitive_target_refused` sur un titre → choisir un autre résultat.
 
@@ -116,41 +120,41 @@ Le 12/11/2026 à 12:26 UTC, une troisième session a été lancée pour cette re
 - **Phrases** : « Affiche Maps. » ; « Remets l'application de prière. » ; « Ouvre Brave. » ; « Reviens à ChatGPT. » ; entre chacune : « Qu'est-ce qui est affiché ? »
 - **Composants** : `phone_open_app`, `phone_get_foreground_app`.
 - **Attendu** : chaque ouverture `verified` ; `phone_get_foreground_app` nomme la bonne application.
-- **Résultat observé** : non testé.
+- **Résultat observé** : **non testé**, 12/11/2026 : recette arrêtée au contrôle de signature à 13:28:52 UTC. Aucune bascule de fenêtres ni lecture du premier plan exécutée.
 
 ### T8. Deux voies, séparément
 
 - **(a) PC éteint, données mobiles** : refaire T1, T3, T4. C'est le test fondamental « sans PC ».
 - **(b) PC allumé** : `node tools\windows\redmi-adb.mjs status`, puis `… open-app com.amoradvisory.salatlille --id <uuid>` ; ensuite `go.js "ph start …"` pour comparer.
 - **Attendu (b)** : `status verified`, `foreground_package com.amoradvisory.salatlille`.
-- **Résultat observé** : non testé. Tableau à remplir : voie, action, statut, durée.
+- **Résultat observé** : **non testé**, 12/11/2026 : (a) PC éteint/données mobiles non testé ; (b) comparaison des ouvertures PC non testée, car T1/T3/T4 restent bloqués après le contrôle de signature à 13:28:52 UTC. Seul `redmi-adb.mjs status` a été exécuté avant changement : Redmi joignable, deux transports du même modèle, aucun lancement d'application. Aucune durée de lancement à comparer ; aucune correction de ph.js effectuée.
 
 ### T9. Coupure et reprise sans doublon
 
 - **Geste** : mode avion pendant une commande de volume, retour après 10 s, puis relecture avec le **même** `command_id`.
 - **Attendu** : un seul changement de volume ; `phone_command_status` rend le reçu ; échec annoncé comme tel pendant la coupure.
-- **Résultat observé** : non testé.
+- **Résultat observé** : **non testé**, 12/11/2026 : recette arrêtée au contrôle de signature à 13:28:52 UTC. Aucune coupure ni commande de volume exécutée.
 
 ### T10. Simulation de conduite, à l'arrêt
 
 - **Précondition** : téléphone sur son support, PC éteint, données mobiles.
 - **Phrases** : navigation, volume, pause, « dans combien de temps la prochaine prière », « reviens à ChatGPT ».
 - **Attendu** : aucune réponse ne demande de toucher ou de lire l'écran ; toute action qui l'exigerait est reportée à l'arrêt, et dite.
-- **Résultat observé** : non testé.
+- **Résultat observé** : **non testé**, 12/11/2026 : recette arrêtée au contrôle de signature à 13:28:52 UTC. Aucune simulation de conduite, aucun test pendant la conduite.
 
 ### T11. Micro et session
 
 - **Attendu** : après T4, T6 et T7, la conversation vocale est la même (pas de nouvelle session, pas de micro perdu).
-- **Résultat observé** : non testé.
+- **Résultat observé** : **non testé**, 12/11/2026 : recette arrêtée au contrôle de signature à 13:28:52 UTC. Aucun essai de micro ou de persistance de session vocale.
 
 ### T12. Sécurité
 
 - **Contrôles** : demander un SMS (préparé, non envoyé) ; demander un appui sur « Envoyer » ou « Payer » dans une application cochée (`sensitive_target_refused`) ; demander la lecture d'une application non cochée (`screen_access_not_allowed`) ; décocher « appui » et redemander (`permission_required`).
 - **Vérifié hors appareil** : les règles de refus (63 tests JVM, dont les libellés à risque, les éléments sans libellé et l'appel téléphonique).
-- **Résultat observé sur l'appareil** : non testé.
+- **Résultat observé sur l'appareil** : **non testé**, 12/11/2026 : recette arrêtée au contrôle de signature à 13:28:52 UTC. Aucun SMS préparé, aucun appui sensible tenté, aucune application non cochée lue, aucun interrupteur ou droit Android modifié.
 
 ## 5. Après la recette
 
 - Remplir « Résultat observé » ci-dessus et l'état « acquis / à faire / impossible » du rapport.
 - Pour chaque réussite **observée** seulement : fiche Notion (clé `speedcar-telephone-depuis-chatgpt`), base « Tests et cas d'usage », `journal\RECETTES.md` et note `go.js`.
-- Fusionner la branche dans `codex/speed-car-2` quand T1 à T4 sont vérifiés.
+- Fusionner la branche dans `codex/speed-car-2` uniquement quand T1 à T4 sont vérifiés **et avec l'accord explicite d'Amor**. Aucune fusion lors de la reprise locale bloquée.

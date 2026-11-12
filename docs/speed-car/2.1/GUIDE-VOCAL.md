@@ -1,6 +1,6 @@
 # Speed Car 2.1.0 : guide d'utilisation à la voix
 
-> Ce guide décrit le comportement **prévu** de la version 2.1.0. Au 12/11/2026 elle n'est ni déployée ni vérifiée sur le Redmi. Tant que la recette (`DEPLOIEMENT-ET-RECETTE.md`) n'est pas passée, considère chaque ligne comme « à confirmer ».
+> Ce guide décrit le comportement **prévu** de la version 2.1.0. Reprise locale du 12/11/2026 : le relais est déployé et relu en 2.1.0 ; l'APK Android 2.1.0 est construit mais son installation est **bloquée par un certificat différent de la référence exigée**. Le Redmi reste en 2.0.1 ; aucun essai vocal de cette recette n'est vérifié. Tant que la recette (`DEPLOIEMENT-ET-RECETTE.md`) n'est pas passée, considère chaque ligne comme « à confirmer ».
 
 ## Avant de parler
 
