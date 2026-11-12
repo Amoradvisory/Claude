@@ -11,3 +11,12 @@ Commande rapide d'un Redmi Android depuis la voix de ChatGPT, avec un relais MCP
 - [Relais, installation et test vocal](relay/README.md)
 
 L'étape suivante après la validation vocale réelle sera `phone_media_volume_up`, puis `phone_open_youtube_brave`. Le Quest est hors périmètre.
+
+## Speed Car 2.1.0 (12/11/2026)
+
+Pilotage vocal du Redmi : diagnostic de l'incident du 11/11, décision d'architecture, correctif de la liaison et outils pour la voix. **Écrit et testé hors appareil ; ni déployé ni vérifié sur le téléphone.**
+
+- [Rapport : diagnostic, décision, correctif, bilan](docs/speed-car/2.1/RAPPORT-20261112.md)
+- [Déploiement depuis le PC et recette T1 à T12](docs/speed-car/2.1/DEPLOIEMENT-ET-RECETTE.md)
+- [Guide d'utilisation à la voix](docs/speed-car/2.1/GUIDE-VOCAL.md)
+- Vérification hors SDK Android : `cd tools/android-compile-check && gradle test`
