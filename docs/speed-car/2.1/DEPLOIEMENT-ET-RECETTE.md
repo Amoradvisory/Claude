@@ -8,7 +8,7 @@ Règles : aucune autorisation Android accordée par ADB ; aucun secret lu, affic
 
 | Étape | Commande | À noter |
 |---|---|---|
-| Version du relais en ligne | `curl https://<relais>/health` | Relevé le 12/11/2026 à 11:48 UTC : `2.0.1`. Le correctif du 04/11 n'a jamais été déployé. Relire avant de déployer, au cas où cela aurait changé |
+| Version du relais en ligne | `curl https://speed-car-relay.speed-car-relay.workers.dev/health` | Relevé le 12/11/2026 à 11:48 UTC puis à 12:26 UTC : `2.0.1`. Le correctif du 04/11 n'a jamais été déployé. Relire avant de déployer, au cas où cela aurait changé |
 | Version de l'application | `phone_status` depuis ChatGPT, ou écran Speed Car | champ `version` |
 | État de l'application sur le téléphone | Regarder l'écran Speed Car | « Connecté au relais », « Connexion en cours », « Connexion arrêtée » ou autre : cela tranche H1 à H4 du rapport |
 | Journal de `ph start` du 11/11 | journaux de `go.js` | cela tranche G1 à G4 |
@@ -17,9 +17,15 @@ Règles : aucune autorisation Android accordée par ADB ; aucun secret lu, affic
 
 1. **Relais d'abord.** Il est compatible avec l'application 2.0.1.
    `cd relay && npm ci && npm test && npx tsc --noEmit`, puis le déploiement habituel (`--keep-vars`, mêmes liaisons, aucune migration nouvelle). Relire `/health` : `2.1.0`.
+   - **Travailler dans la copie de travail déjà présente sur le PC** (`git fetch` puis bascule sur la branche), pas dans un clone neuf. La configuration de production `relay/wrangler.production.jsonc` est ignorée par Git : elle n'existe que dans cette copie.
+   - Commande : `npx wrangler deploy --config wrangler.production.jsonc --keep-vars --strict`, avec les mêmes options que le déploiement du 01/11 (`docs/speed-car/2.0/RAPPORT-20261101.md`, ligne « Le déploiement a réutilisé… »).
+   - **Ne jamais déployer avec le `wrangler.jsonc` suivi par Git** : son espace KV est un texte à remplacer (`REPLACE_WITH_YOUR_KV_NAMESPACE_ID`). Si `wrangler.production.jsonc` est introuvable, s'arrêter et le dire.
+   - Avant de déployer, noter la version Cloudflare active (`npx wrangler deployments list --config wrangler.production.jsonc`) : c'est la cible du retour arrière.
 2. **ChatGPT.** Paramètres → Plugins → Speed Car → Gérer l'application → **Actualiser les outils**. Nouvelle conversation : **36 outils**.
 3. **Contrôle sans rien installer.** `speedcar_test_action` doit maintenant dire si le téléphone est relié. C'est le premier gain, avant même la nouvelle application.
 4. **Application.** `cd android && gradlew testDebugUnitTest lintDebug assembleDebug`, avec la **même clé de signature** que 2.0.1. Installer par-dessus (`-r`), sans désinstaller : l'appairage et les réglages sont conservés. Une autre clé obligerait à désinstaller, donc à tout refaire : ne pas le faire.
+   - La 2.0.1 est signée par la clé de développement locale du PC (`android/README.md`). L'empreinte publique de son certificat est dans `releases/Speed-Car-2.0.1.json`, champ `signer_sha256` : `0a11ba52371276d2a3d5cdef98b87971c2d609921c240e8040dca20f0c69fc94`.
+   - **Contrôle avant installation** : `apksigner verify --print-certs app\build\outputs\apk\debug\app-debug.apk` doit afficher cette même empreinte SHA-256. Si elle diffère, ne pas installer, ne pas désinstaller, s'arrêter et le dire. Ce contrôle lit un certificat public, aucune clé privée.
 5. **Ouvrir Speed Car** sur le téléphone : « Connecté au relais ».
 
 Retour arrière : relais, version précédente relevée à l'étape 1 ; application, APK 2.0.1 conservé dans `releases/`.
@@ -44,6 +50,8 @@ Dans **ChatGPT → Paramètres → Voix** : « Conversations en arrière-plan »
 Si la lecture d'écran est refusée alors que tout est activé et que le PC est allumé : `ph.js status` doit afficher `u2 = coexistence` (recette R-0049).
 
 ## 4. Recette
+
+Le 12/11/2026 à 12:26 UTC, une troisième session a été lancée pour cette recette. Elle tournait elle aussi dans le cloud, sans accès au PC ni au téléphone : aucun dossier du PC ne lui était partagé. Elle a seulement relu `/health` (`2.0.1`) et rejoué les tests hors appareil (relais 57/57 et 3/3, `tsc` sans erreur, outil ADB 10/10). Rien n'a été déployé, rien n'a été testé sur le Redmi.
 
 État de chaque test au 12/11/2026 : **non testé sur l'appareil**. La colonne « Résultat observé » se remplit pendant la recette. Un test n'est « vérifié » qu'après observation ; sinon « échoué », « bloqué » (dire par quoi) ou « non testé ».
 
