@@ -8,7 +8,7 @@ Règles : aucune autorisation Android accordée par ADB ; aucun secret lu, affic
 
 | Étape | Commande | À noter |
 |---|---|---|
-| Version du relais en ligne | `curl https://<relais>/health` | `2.0.1` : le correctif du 04/11 n'a jamais été déployé. `2.0.2` : il l'a été |
+| Version du relais en ligne | `curl https://<relais>/health` | Relevé le 12/11/2026 à 11:48 UTC : `2.0.1`. Le correctif du 04/11 n'a jamais été déployé. Relire avant de déployer, au cas où cela aurait changé |
 | Version de l'application | `phone_status` depuis ChatGPT, ou écran Speed Car | champ `version` |
 | État de l'application sur le téléphone | Regarder l'écran Speed Car | « Connecté au relais », « Connexion en cours », « Connexion arrêtée » ou autre : cela tranche H1 à H4 du rapport |
 | Journal de `ph start` du 11/11 | journaux de `go.js` | cela tranche G1 à G4 |
